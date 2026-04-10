@@ -197,11 +197,44 @@
             border-color: #d73a49;
             color: #d73a49;
         }
+
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            /* Pushes the link to the right side */
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: bold;
+        }
+
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
 <body>
-    <h1>⭐ Paris Museum Tracker ⭐</h1>
+    <nav class="top-nav" style="align-items: center;">
+        <% if (userId) { %>
+            <span style="margin-right: 15px; font-size: 14px; color: #555;">
+                Logged in as: <strong>
+                    <%= userEmail %>
+                </strong>
+            </span>
+            <a href="/logout">Logout</a>
+            <% } else { %>
+                <a href="/login">Login</a>
+                <% } %>
+    </nav>
+
+    <h1 style="text-align: center;">⭐ Paris Museum Tracker ⭐</h1>
     <p style="text-align: center; color: #6a737d;">Found 405 exhibitions (from 100 recent entries). Sorted by Priority.
     </p>
     <div id="exhibition-grid" class="grid">

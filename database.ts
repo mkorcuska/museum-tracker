@@ -42,6 +42,8 @@ db.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    
+
     CREATE TABLE IF NOT EXISTS user_exhibitions (
       user_id INTEGER,
       exhibition_id TEXT,
@@ -59,8 +61,21 @@ db.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (exhibition_id) REFERENCES exhibitions(id)
     );
-    
-`); // <--- MAKE SURE THIS LINE HAS THE BACKTICK, PARENTHESIS, AND SEMICOLON
+
+  CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INTEGER,
+        exhibition_id TEXT,
+        priority TEXT,
+        PRIMARY KEY (user_id, exhibition_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS magic_tokens(
+        token TEXT PRIMARY KEY,
+        email TEXT NOT NULL,
+        expires DATETIME NOT NULL
+    );
+`);
+
 
 // --- 2. THE GETTER ---
 export async function getAllEventsFromDB() {
@@ -73,7 +88,7 @@ export async function getAllEventsFromDB() {
         JOIN venues v ON e.venue_id = v.id
         ORDER BY 
             CASE WHEN e.priority = 'Must See' THEN 1 ELSE 2 END,
-            e.start_date ASC
+  e.start_date ASC
     `).all();
 }
 

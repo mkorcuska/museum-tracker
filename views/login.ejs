@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Paris Museum Tracker</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background-color: #f4f4f4; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 350px; 
+            text-align: center; 
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 15px 0; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #0366d6; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+        }
+        button:hover { background-color: #0056b3; }
+        .back-link { 
+            display: block; 
+            margin-top: 20px; 
+            color: #666; 
+            text-decoration: none; 
+            font-size: 14px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Welcome Back</h2>
+        <p>Enter your email to receive a secure login link.</p>
+        
+        <form action="/login" method="POST">
+            <input type="email" name="email" placeholder="your@email.com" required>
+            <button type="submit">Send Magic Link</button>
+        </form>
+        
+        <a href="/" class="back-link">← Back to Museums</a>
+    </div>
+</body>
+</html>
