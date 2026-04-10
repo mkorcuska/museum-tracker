@@ -6,9 +6,8 @@ import { generateMagicToken } from './auth';
 import db from './database'; 
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Use the cloud's port, or 3000 locally
+const PORT = Number(process.env.PORT) || 3000;
 
-// main.ts
 import session from 'express-session';
 
 // This tells TypeScript that our session has a userId
@@ -97,17 +96,15 @@ app.listen(PORT, () => {
 
 // ... (existing code)
 
-app.listen(PORT, async () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', async () => {
+    // '0.0.0.0' is CRITICAL for cloud deployments
+    console.log(`🚀 Server ready on port ${PORT}`);
     
-    // Trigger an initial sync so the cloud DB isn't empty
     try {
-        console.log("Checking for initial data sync...");
+        console.log("Checking for data sync...");
         await syncExhibitionsIfNeeded();
-        console.log("Initial sync check complete.");
+        console.log("Sync process finished.");
     } catch (err) {
         console.error("Initial sync failed:", err);
     }
-    
-    console.log(`🚀 Server ready at http://localhost:${PORT}`);
 });
