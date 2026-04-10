@@ -93,5 +93,21 @@ app.get('/', async (req, res) => {
 });
 
 app.listen(PORT, () => {
+    import { syncExhibitionsIfNeeded } from './fetchExhibitions';
+
+// ... (existing code)
+
+app.listen(PORT, async () => {
+    console.log(`🚀 Server ready at http://localhost:${PORT}`);
+    
+    // Trigger an initial sync so the cloud DB isn't empty
+    try {
+        console.log("Checking for initial data sync...");
+        await syncExhibitionsIfNeeded();
+        console.log("Initial sync check complete.");
+    } catch (err) {
+        console.error("Initial sync failed:", err);
+    }
+    
     console.log(`🚀 Server ready at http://localhost:${PORT}`);
 });
