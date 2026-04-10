@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import connectSqlite3 from 'connect-sqlite3';
 
@@ -10,6 +11,10 @@ import { getParisExhibitions } from './fetchExhibitions.ts';
 import { renderHTML } from './uiux.ts';
 import { generateMagicToken } from './auth';
 import db from './database';
+import { Resend } from 'resend';
+
+// Initialize Resend with the API Key (Render will inject this automatically!)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const app = express();
 // These two lines are the "box cutters" that let Express read incoming data
@@ -64,8 +69,7 @@ app.get('/login', (req, res) => {
 });
 
 // 2. Process the form submission
-app.post('/login', (req, res) => {
-    // Note: This relies on express.urlencoded() which we added earlier!
+app.post('/login', async (req, res) => { // <--- Add 'async' right here
     const { email } = req.body;
     if (!email) return res.status(400).send("Email is required");
 
@@ -79,24 +83,35 @@ app.post('/login', (req, res) => {
     `).run(email, token);
 
     // ==========================================
-    // THE "FAKE" EMAIL SENDER (Terminal Logger)
+    // THE REAL EMAIL SENDER
     // ==========================================
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
     const magicLink = `${baseUrl}/verify?token=${token}`;
 
-    console.log('\n======================================');
-    console.log(`📩 FAKE EMAIL SENT TO: ${email}`);
-    console.log(`🔗 CLICK HERE TO LOG IN: ${magicLink}`);
-    console.log('======================================\n');
+    try {
+        await resend.emails.send({
+            from: 'onboarding@resend.dev', // Resend's default testing address
+            to: email,                     // The email they typed in the form
+            subject: '⭐ Your Paris Museum Tracker Login',
+            html: `
+                <h2>Welcome back!</h2>
+                <p>Click the secure link below to log into your museum tracker:</p>
+                <a href="${magicLink}" style="display:inline-block; padding:10px 20px; background:#0366d6; color:white; text-decoration:none; border-radius:5px;">Log In Now</a>
+                <p style="margin-top:20px; font-size:12px; color:#666;">This link expires in 15 minutes.</p>
+            `
+        });
 
-    // Show the user a success message
-    res.send(`
-        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-            <h2>✨ Magic link sent!</h2>
-            <p>Check your terminal window for the link (since we don't have a real email provider yet).</p>
-            <a href="/">Go back to homepage</a>
-        </div>
-    `);
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+                <h2>✨ Magic link sent!</h2>
+                <p>Check your email inbox (and spam folder) for your login link.</p>
+                <a href="/">Go back to homepage</a>
+            </div>
+        `);
+    } catch (error) {
+        console.error("Failed to send email:", error);
+        return res.status(500).send("Uh oh, the email failed to send.");
+    }
 });
 
 
@@ -208,12 +223,12 @@ app.get('/', async (req, res) => {
         // Get the weight of each card (default to 'Recommended' if undefined)
         const weightA = priorityWeights[a.priority || 'Recommended'] || 5;
         const weightB = priorityWeights[b.priority || 'Recommended'] || 5;
-        
+
         // Primary Sort: By Priority Weight
         if (weightA !== weightB) {
             return weightA - weightB;
         }
-        
+
         // Secondary Sort: Alphabetical by Title (if they have the same priority)
         return (a.title || '').localeCompare(b.title || '');
     });
