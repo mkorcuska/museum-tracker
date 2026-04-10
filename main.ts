@@ -7,8 +7,10 @@ import { generateMagicToken } from './auth';
 import db from './database'; 
 
 const app = express();
+// These two lines are the "box cutters" that let Express read incoming data
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-const PORT = Number(process.env.PORT) || 3000;
 
 import session from 'express-session';
 
@@ -77,21 +79,52 @@ app.get('/verify', (req, res) => {
 });
 
 
-app.get('/', async (req, res) => {
-    const exhibitions = await getParisExhibitions();
-    res.render('index', { exhibitions }); 
-});
+app.post('/update-priority', (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).send("Log in first");
 
-
-app.listen(PORT, '0.0.0.0', async () => {
-    // '0.0.0.0' is CRITICAL for cloud deployments
-    console.log(`🚀 Server ready on port ${PORT}`);
+    const { exhibitionId, priority } = req.body;
     
     try {
-        console.log("Checking for data sync...");
-        await getParisExhibitions();
-        console.log("Sync process finished.");
+        db.prepare(`
+            INSERT INTO user_exhibitions (user_id, exhibition_id, priority) 
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, exhibition_id) DO UPDATE SET priority = excluded.priority
+        `).run(userId, exhibitionId, priority);
+        
+        res.sendStatus(200);
     } catch (err) {
-        console.error("Initial sync failed:", err);
+        console.error("DB Error saving priority:", err);
+        // If it's a foreign key error, it usually throws a specific code
+        res.status(500).send("Database error");
     }
 });
+
+app.get('/', async (req, res) => {
+    // 1. Get the current logged-in user
+    const currentUserId = req.session.userId;
+
+    // 2. Pass it into the function!
+    const exhibitions = await getParisExhibitions(currentUserId);
+
+    res.render('index', { 
+        exhibitions, 
+        userId: currentUserId 
+    }); 
+});
+
+
+const PORT = Number(process.env.PORT) || 3000;
+
+// 1. Start the server IMMEDIATELY so Render sees an open port
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server ready on port ${PORT}`);
+    
+    // 2. Trigger the sync in the background AFTER the port is open
+    // We don't 'await' it here so the server stays responsive
+    console.log("Checking for initial data sync in background...");
+    getParisExhibitions()
+        .then(data => console.log(`Initial sync complete. Found ${data.length} exhibitions.`))
+        .catch(err => console.error("Initial sync failed:", err));
+});
+

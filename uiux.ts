@@ -1,7 +1,7 @@
 // uiux.ts
 export function renderHTML(exhibitions: any[]): string {
-  // 1. The Header and CSS
-  let html = `
+    // 1. The Header and CSS
+    let html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -20,6 +20,10 @@ export function renderHTML(exhibitions: any[]): string {
             .card { 
                 background: white; 
                 border-radius: 12px; 
+                text-decoration: none; /* Removes underline */
+                color: inherit;        /* Keeps text black/grey */
+                display: flex;
+                flex-direction: column;
                 overflow: hidden; 
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 transition: transform 0.2s;
@@ -44,12 +48,12 @@ export function renderHTML(exhibitions: any[]): string {
         <div class="grid">
   `;
 
-  // 2. The Loop (Building the Cards)
-  exhibitions.forEach(expo => {
-    const priorityClass = expo.priority === 'Must See' ? 'must-see' : 'nice-to-see';
-    const dateStr = expo.startDate ? new Date(expo.startDate).toLocaleDateString('fr-FR') : 'TBD';
+    // 2. The Loop (Building the Cards)
+    exhibitions.forEach(expo => {
+        const priorityClass = expo.priority === 'Must See' ? 'must-see' : 'nice-to-see';
+        const dateStr = expo.startDate ? new Date(expo.startDate).toLocaleDateString('fr-FR') : 'TBD';
 
-    html += `
+        html += `
         <div class="card">
             <img class="card-img" src="${expo.cover_url || 'https://via.placeholder.com/400x200'}" alt="${expo.title}">
             <div class="content">
@@ -61,14 +65,14 @@ export function renderHTML(exhibitions: any[]): string {
             </div>
         </div>
     `;
-  });
+    });
 
-  // 3. The Footer
-  html += `
+    // 3. The Footer
+    html += `
         </div>
     </body>
     </html>
   `;
 
-  return html;
+    return html;
 }

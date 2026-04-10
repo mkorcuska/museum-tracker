@@ -43,6 +43,13 @@ db.exec(`
     );
 
     CREATE TABLE IF NOT EXISTS user_exhibitions (
+      user_id INTEGER,
+      exhibition_id TEXT,
+      priority TEXT, -- 'Must See', 'Nice to See', 'Ignore'
+      PRIMARY KEY (user_id, exhibition_id)
+  );
+
+    CREATE TABLE IF NOT EXISTS user_exhibitions (
         user_id INTEGER NOT NULL,
         exhibition_id TEXT NOT NULL,
         status TEXT DEFAULT 'Interested',
@@ -52,14 +59,15 @@ db.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (exhibition_id) REFERENCES exhibitions(id)
     );
+    
 `); // <--- MAKE SURE THIS LINE HAS THE BACKTICK, PARENTHESIS, AND SEMICOLON
 
 // --- 2. THE GETTER ---
 export async function getAllEventsFromDB() {
-    // We are commenting out the sync for 5 minutes just to get you running
-    // await syncExhibitionsIfNeeded(); 
+  // We are commenting out the sync for 5 minutes just to get you running
+  // await syncExhibitionsIfNeeded(); 
 
-    return db.prepare(`
+  return db.prepare(`
         SELECT e.*, v.name as venueName 
         FROM exhibitions e
         JOIN venues v ON e.venue_id = v.id
