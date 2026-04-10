@@ -31,6 +31,13 @@ declare module 'express-session' {
     }
 }
 
+
+// The Home Page Route
+app.get('/', (req, res) => {
+    // This tells Express: "Look in the views folder, find index.ejs, convert it to HTML, and send it"
+    res.render('index'); 
+});
+
 app.set('trust proxy', 1);
 
 app.use(session({
@@ -89,28 +96,29 @@ app.post('/login', async (req, res) => { // <--- Add 'async' right here
     const magicLink = `${baseUrl}/verify?token=${token}`;
 
     try {
-        await resend.emails.send({
-            from: 'onboarding@resend.dev', // Resend's default testing address
-            to: email,                     // The email they typed in the form
+        // We need to 'const data =' here so the console.log can see it!
+        const { data, error } = await resend.emails.send({
+            from: 'onboarding@resend.dev',
+            to: email, 
             subject: '⭐ Your Paris Museum Tracker Login',
             html: `
                 <h2>Welcome back!</h2>
-                <p>Click the secure link below to log into your museum tracker:</p>
-                <a href="${magicLink}" style="display:inline-block; padding:10px 20px; background:#0366d6; color:white; text-decoration:none; border-radius:5px;">Log In Now</a>
-                <p style="margin-top:20px; font-size:12px; color:#666;">This link expires in 15 minutes.</p>
+                <p>Click the link below to log in:</p>
+                <a href="${magicLink}">Log In Now</a>
             `
         });
 
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h2>✨ Magic link sent!</h2>
-                <p>Check your email inbox (and spam folder) for your login link.</p>
-                <a href="/">Go back to homepage</a>
-            </div>
-        `);
+        if (error) {
+            console.error("Resend specific error:", error);
+            return res.status(500).send("Resend rejected the email.");
+        }
+
+        console.log("Resend Success! ID:", data?.id);
+
+        res.send(`<h2>✨ Magic link sent!</h2><p>Check your inbox.</p>`);
     } catch (error) {
-        console.error("Failed to send email:", error);
-        return res.status(500).send("Uh oh, the email failed to send.");
+        console.error("System level error:", error);
+        return res.status(500).send("The server failed to reach Resend.");
     }
 });
 
