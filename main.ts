@@ -1,11 +1,13 @@
 import express from 'express';
 // Keep all your existing imports (database, etc.) here
 import { saveExhibitionsToDB, getAllEventsFromDB } from './database'; 
+import { getParisExhibitions } from './fetchExhibitions.ts';
 import { renderHTML } from './uiux.ts';
 import { generateMagicToken } from './auth';
 import db from './database'; 
 
 const app = express();
+app.set('view engine', 'ejs');
 const PORT = Number(process.env.PORT) || 3000;
 
 import session from 'express-session';
@@ -74,27 +76,12 @@ app.get('/verify', (req, res) => {
     res.redirect('/');
 });
 
-// main.ts
-// main.ts
 
 app.get('/', async (req, res) => {
-    try {
-        // DELETE the syncExhibitionsIfNeeded() line here!
-        // Just call the database getter.
-        const exhibitions = await getAllEventsFromDB(); 
-        
-        const html = renderHTML(exhibitions, req.session.userId);
-        res.send(html);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error loading page.");
-    }
+    const exhibitions = await getParisExhibitions();
+    res.render('index', { exhibitions }); 
 });
 
-app.listen(PORT, () => {
-    import { syncExhibitionsIfNeeded } from './fetchExhibitions';
-
-// ... (existing code)
 
 app.listen(PORT, '0.0.0.0', async () => {
     // '0.0.0.0' is CRITICAL for cloud deployments
@@ -102,7 +89,7 @@ app.listen(PORT, '0.0.0.0', async () => {
     
     try {
         console.log("Checking for data sync...");
-        await syncExhibitionsIfNeeded();
+        await getParisExhibitions();
         console.log("Sync process finished.");
     } catch (err) {
         console.error("Initial sync failed:", err);

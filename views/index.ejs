@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paris Museum Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: #f6f8fa;
+            color: #24292e;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #0366d6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(27, 31, 35, 0.12);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(27, 31, 35, 0.15);
+            border-color: #0366d6;
+        }
+
+        .card-img-container {
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #e1e4e8;
+            position: relative;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .priority-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .priority-must {
+            background-color: #d73a49;
+        }
+
+        /* Red for Must */
+        .priority-nice {
+            background-color: #0366d6;
+        }
+
+        /* Blue for Nice */
+        .card-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            color: #24292e;
+            line-height: 1.4;
+        }
+
+        .card-venue {
+            font-size: 13px;
+            color: #6a737d;
+            margin: 0 0 10px 0;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: #586069;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #f1f1f1;
+            padding-top: 10px;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>⭐ Paris Museum Tracker ⭐</h1>
+    <p style="text-align: center; color: #6a737d;">Found 405 exhibitions (from 100 recent entries). Sorted by Priority.
+    </p>
+    <div id="exhibition-grid" class="grid">
+        <% exhibitions.forEach(exhibition=> { %>
+            <div class="card">
+                <div class="card-img-container">
+                    <img class="card-img"
+                        src="<%= exhibition.coverUrl || 'https://via.placeholder.com/300x180?text=No+Image' %>"
+                        alt="<%= exhibition.title %>">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">
+                        <%= exhibition.title %>
+                    </h2>
+                    <p class="card-venue">
+                        <%= exhibition.venue?.name || "Venue TBD" %>
+                    </p>
+                    <div class="card-meta">
+                        <span>Priority: <%= exhibition.priority %></span>
+                    </div>
+                </div>
+            </div>
+            <% }); %>
+    </div>
+
+    <footer
+        style="text-align: center; margin-top: 50px; padding: 20px; color: #6a737d; font-size: 12px; border-top: 1px solid #e1e4e8;">
+        Generated on 4/10/2026, 11:51:15 AM | Source: Paris Open Data | Coding & Dinner Deadline: Imminent
+    </footer>
+</body>
+
+</html>
