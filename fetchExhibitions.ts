@@ -23,12 +23,21 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     const highValueVenues = loadHighValueVenues();
 
     // 1. Get the RAW data (either from Cache or API)
+    let needsFetch = true;
     if (fs.existsSync(CACHE_FILE)) {
-        console.log("📦 Loading from local cache...");
-        rawResults = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+        const stats = fs.statSync(CACHE_FILE);
+        const ageInHours = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60);
+        
+        if (ageInHours < 24) {
+            console.log("📦 Loading from local cache...");
+            rawResults = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+            needsFetch = rawResults.length === 0;
+        } else {
+            console.log("🕰️ Cache is older than 24 hours. Refreshing...");
+        }
     }
 
-    if (rawResults.length === 0) {
+    if (needsFetch) {
         console.log("🔄 Fetching fresh data...");
         
         let allResults: any[] = [];
