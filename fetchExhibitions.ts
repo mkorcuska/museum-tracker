@@ -41,33 +41,58 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     
     // 2. Fetch User Preferences if logged in
     const userPrefs = userId ? 
-        db.prepare('SELECT exhibition_id, priority FROM user_exhibitions WHERE user_id = ?').all(userId) : 
+        db.prepare('SELECT exhibition_id, priority FROM user_preferences WHERE user_id = ?').all(userId) : 
         [];
     
     // Convert to a Map for ultra-fast lookups
     const prefMap = new Map(userPrefs.map((p: any) => [p.exhibition_id, p.priority]));
 
+    const userVenuePrefs = userId ?
+        db.prepare('SELECT venue_id, is_favorite FROM user_favorite_venues WHERE user_id = ?').all(userId) :
+        [];
+    const venuePrefMap = new Map(userVenuePrefs.map((p: any) => [p.venue_id, p.is_favorite === 1]));
+
     const exhibitions = rawResults.map(record => {
         const venueName = record.address_name || record.lieu || "Unknown Venue";
         if (!venuesMap.has(venueName)) {
-            venuesMap.set(venueName, new Venue(venueName, highValueVenues));
+            const venue = new Venue(venueName, highValueVenues);
+            venuesMap.set(venueName, venue);
+            venue.save(); // Save the venue to the database
         }
         
+        const baseVenue = venuesMap.get(venueName)!;
+        const userVenue = Object.create(baseVenue);
+        Object.assign(userVenue, baseVenue);
+        if (venuePrefMap.has(userVenue.id)) {
+            userVenue.isHighValue = venuePrefMap.get(userVenue.id)!;
+        }
+
         // 3. Look up if the user tagged this specific exhibition
         const userTag = prefMap.get(record.id?.toString());
         
         // Pass the tag to the constructor
-        return new Exhibition(record, venuesMap.get(venueName)!, userTag);
+        const exhibition = new Exhibition(record, userVenue, userTag);
+        exhibition.save(); // Save the exhibition to the database
+        return exhibition;
     });
 
     // Sort the results
     exhibitions.sort((a, b) => {
-        // 1. Sort by Priority ('Must See' > 'Recommended' > 'Nice to See' > 'Ignore')
-        const priorityOrder = { 'Must See': 0, 'Recommended': 1, 'Nice to See': 2, 'Ignore': 3 };
-        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        // 1. Assign a rank based on custom filtering/sorting rules
+        const getRank = (expo: Exhibition) => {
+            if (expo.isNew && expo.venue.isHighValue) return 1;
+            if (expo.priority === 'Must See' && expo.isClosingSoon) return 2;
+            if (expo.priority === 'Recommended' && expo.isClosingSoon) return 3;
+            if (expo.priority === 'Must See') return 4;
+            if (expo.priority === 'Recommended') return 5;
+            if (expo.priority === 'Nice to See') return 6;
+            return 7; // The rest ('Ignore' or unknown)
+        };
 
-        if (priorityDiff !== 0) {
-            return priorityDiff;
+        const rankDiff = getRank(a) - getRank(b);
+
+        if (rankDiff !== 0) {
+            return rankDiff;
         }
 
         // 2. If priorities are equal, sort by Closing Date (Soonest first)
@@ -76,7 +101,11 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     });
 
     console.log(`✅ Successfully mapped ${exhibitions.length} exhibitions.`);
+    
+    const newExhibitionsCount = exhibitions.filter(e => e.isNew).length;
+    console.log(`🎉 Found ${newExhibitionsCount} new exhibitions this week!`);
+    const closingExhibitionsCount = exhibitions.filter(e => e.isClosingSoon).length;
+    console.log(`🎉 Found ${closingExhibitionsCount} exhibitions closing soon!`);
 
     return exhibitions;
 }
-

@@ -7,9 +7,8 @@ import crypto from 'crypto';
 import { Resend } from 'resend';
 
 // 2. LOCAL IMPORTS
-import db, { saveExhibitionsToDB, getAllEventsFromDB } from './database';
+import db from './database';
 import { getParisExhibitions } from './fetchExhibitions.ts';
-import { renderHTML } from './uiux.ts';
 import { generateMagicToken } from './auth';
 
 // 3. TYPESCRIPT DECLARATIONS
@@ -50,15 +49,25 @@ app.use(session({
 
 // Global template variables (Available to all EJS files)
 app.use((req, res, next) => {
-    res.locals.userId = req.session.userId || null;
-
     if (req.session.userId) {
+        // Verify user still exists (prevents ghost sessions if DB is reset)
         const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId) as { email: string } | undefined;
-        res.locals.userEmail = user ? user.email : null;
+        if (user) {
+            res.locals.userId = req.session.userId;
+            res.locals.userEmail = req.session.userEmail || user.email;
+            next();
+        } else {
+            req.session.destroy(() => {
+                res.clearCookie('connect.sid');
+                res.redirect('/');
+            });
+            return; // Stop the request chain so the route handler doesn't run with an undefined session
+        }
     } else {
+        res.locals.userId = null;
         res.locals.userEmail = null;
+        next();
     }
-    next();
 });
 
 // ==========================================
@@ -68,37 +77,7 @@ app.use((req, res, next) => {
 // --- Home Page ---
 app.get('/', async (req, res) => {
     const userId = req.session.userId;
-    const exhibitions = await getParisExhibitions();
-
-    if (userId) {
-        const savedPrefs = db.prepare('SELECT exhibition_id, priority FROM user_preferences WHERE user_id = ?').all(userId) as { exhibition_id: string, priority: string }[];
-        
-        const prefMap: Record<string, string> = {};
-        savedPrefs.forEach(pref => {
-            prefMap[pref.exhibition_id] = pref.priority;
-        });
-
-        exhibitions.forEach(ex => {
-            if (prefMap[ex.id]) {
-                ex.priority = prefMap[ex.id];
-            }
-        });
-    }
-
-    const priorityWeights: Record<string, number> = {
-        'Must See': 1,
-        'Recommended': 2,
-        'Nice to See': 3,
-        'Ignore': 4
-    };
-
-    exhibitions.sort((a, b) => {
-        const weightA = priorityWeights[a.priority || 'Recommended'] || 5;
-        const weightB = priorityWeights[b.priority || 'Recommended'] || 5;
-
-        if (weightA !== weightB) return weightA - weightB;
-        return (a.title || '').localeCompare(b.title || '');
-    });
+    const exhibitions = await getParisExhibitions(userId);
 
     res.render('index', { exhibitions });
 });
@@ -112,15 +91,10 @@ app.post('/login', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).send("Email is required");
 
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = generateMagicToken(email);
 
-    db.prepare(`
-        INSERT INTO magic_tokens (email, token, expires)
-        VALUES (?, ?, datetime('now', '+15 minutes'))
-    `).run(email, token);
-
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const magicLink = `${baseUrl}/verify?token=${token}`;
+    const protocol = req.protocol;
+    const magicLink = `${protocol}://${req.get('host')}/verify?token=${token}`;
 
     try {
         const { data, error } = await resend.emails.send({
@@ -152,19 +126,19 @@ app.get('/verify', (req, res) => {
     const cleanToken = rawToken ? rawToken.trim() : '';
 
     const tokenRecord = db.prepare(`
-        SELECT email FROM magic_tokens 
-        WHERE token = ? AND expires > datetime('now')
-    `).get(cleanToken) as { email: string } | undefined;
+        SELECT a.user_id, u.email 
+        FROM auth_tokens a
+        JOIN users u ON a.user_id = u.id
+        WHERE a.token = ? AND a.expires_at > datetime('now') AND a.used = 0
+    `).get(cleanToken) as { user_id: number, email: string } | undefined;
 
     if (!tokenRecord) {
         return res.status(400).send("Link is invalid or expired. Try again.");
     }
 
-    db.prepare('INSERT OR IGNORE INTO users (email) VALUES (?)').run(tokenRecord.email);
-    const user = db.prepare('SELECT id FROM users WHERE email = ?').get(tokenRecord.email) as { id: number };
-
-    req.session.userId = user.id;
-    db.prepare('DELETE FROM magic_tokens WHERE token = ?').run(cleanToken);
+    req.session.userId = tokenRecord.user_id;
+    req.session.userEmail = tokenRecord.email;
+    db.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').run(cleanToken);
 
     res.redirect('/');
 });
@@ -198,6 +172,27 @@ app.post('/update-priority', (req, res) => {
         res.status(200).send({ success: true });
     } catch (err) {
         console.error("Database error saving preference:", err);
+        res.status(500).send({ success: false });
+    }
+});
+
+app.post('/toggle-favorite-venue', (req, res) => {
+    const { venueId, isFavorite } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) return res.status(401).send("You must be logged in to favorite venues.");
+
+    try {
+        db.prepare(`
+            INSERT INTO user_favorite_venues (user_id, venue_id, is_favorite)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, venue_id) DO UPDATE SET is_favorite = excluded.is_favorite
+        `).run(userId, venueId, isFavorite ? 1 : 0);
+
+        console.log(`✅ User ${userId} marked venue ${venueId} favorite status: ${isFavorite}`);
+        res.status(200).send({ success: true });
+    } catch (err) {
+        console.error("Database error saving venue preference:", err);
         res.status(500).send({ success: false });
     }
 });

@@ -12,7 +12,8 @@ const db = new Database(dbPath);
 db.exec(`
     CREATE TABLE IF NOT EXISTS venues (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        is_high_value INTEGER DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS exhibitions (
@@ -44,14 +45,7 @@ db.exec(`
 
     
 
-    CREATE TABLE IF NOT EXISTS user_exhibitions (
-      user_id INTEGER,
-      exhibition_id TEXT,
-      priority TEXT, -- 'Must See', 'Nice to See', 'Ignore'
-      PRIMARY KEY (user_id, exhibition_id)
-  );
-
-    CREATE TABLE IF NOT EXISTS user_exhibitions (
+    CREATE TABLE IF NOT EXISTS user_preferences (
         user_id INTEGER NOT NULL,
         exhibition_id TEXT NOT NULL,
         status TEXT DEFAULT 'Interested',
@@ -62,17 +56,13 @@ db.exec(`
         FOREIGN KEY (exhibition_id) REFERENCES exhibitions(id)
     );
 
-  CREATE TABLE IF NOT EXISTS user_preferences (
-        user_id INTEGER,
-        exhibition_id TEXT,
-        priority TEXT,
-        PRIMARY KEY (user_id, exhibition_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS magic_tokens(
-        token TEXT PRIMARY KEY,
-        email TEXT NOT NULL,
-        expires DATETIME NOT NULL
+    CREATE TABLE IF NOT EXISTS user_favorite_venues (
+        user_id INTEGER NOT NULL,
+        venue_id TEXT NOT NULL,
+        is_favorite INTEGER NOT NULL,
+        PRIMARY KEY (user_id, venue_id),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (venue_id) REFERENCES venues(id)
     );
 `);
 

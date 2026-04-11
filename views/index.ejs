@@ -30,6 +30,11 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .card-link {
@@ -70,8 +75,8 @@
 
         .card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(27, 31, 35, 0.15);
-            border-color: #0366d6;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            border-color: #d1d5da;
         }
 
         .card-img-container {
@@ -217,6 +222,44 @@
         .top-nav a:hover {
             text-decoration: underline;
         }
+
+        .filter-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: #586069;
+            transition: all 0.2s ease-in-out;
+        }
+        .filter-btn:hover {
+            background-color: #f1f1f1;
+            color: #111;
+        }
+        .filter-btn.active {
+            background-color: #e1e4e8;
+            color: #111;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -225,7 +268,7 @@
         <% if (userId) { %>
             <span style="margin-right: 15px; font-size: 14px; color: #555;">
                 Logged in as: <strong>
-                    <%= userEmail %>
+                    <%= userEmail  %>
                 </strong>
             </span>
             <a href="/logout">Logout</a>
@@ -234,43 +277,80 @@
                 <% } %>
     </nav>
 
-    <h1 style="text-align: center;">⭐ Paris Museum Tracker ⭐</h1>
-    <p style="text-align: center; color: #6a737d;">Found 405 exhibitions (from 100 recent entries). Sorted by Priority.
+    <h1>Paris Museum Tracker</h1>
+    <p style="text-align: center; color: #6a737d; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; margin-top: 0; margin-bottom: 30px;">Found <span id="exhibition-count"><%= exhibitions.length %></span> exhibitions.
     </p>
+
+    <div class="filter-bar">
+        <div class="filter-row">
+            <button class="filter-btn active" onclick="applyFilter('All', this)">All</button>
+            <button class="filter-btn" onclick="applyFilter('New This Week', this)">New</button>
+            <button class="filter-btn" onclick="applyFilter('Closing Soon', this)">Closing!</button>
+            <button class="filter-btn" onclick="applyFilter('High Value', this)">Favorite Venues</button>
+            <button class="filter-btn" onclick="applyFilter('Free', this)">Free</button>
+        </div>
+        <div class="filter-row">
+            <button class="filter-btn" onclick="applyFilter('Must See', this)">Must See</button>
+            <button class="filter-btn" onclick="applyFilter('Recommended', this)">Recommended</button>
+            <button class="filter-btn" onclick="applyFilter('Nice to See', this)">Nice to See</button>
+            <button class="filter-btn" onclick="applyFilter('Ignore', this)">Ignored</button>
+        </div>
+    </div>
+
     <div id="exhibition-grid" class="grid">
         <% exhibitions.forEach(exhibition=> { %>
-            <div class="card">
+            <div class="card" data-priority="<%= exhibition.priority %>" data-is-new="<%= exhibition.isNew %>" data-is-closing-soon="<%= exhibition.isClosingSoon %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" data-is-free="<%= exhibition.isFree %>">
 
-                <a href="<%= exhibition.url %>" target="_blank" class="card-link"
-                    style="text-decoration: none; color: inherit; display: block; flex-grow: 1;">
-                    <div class="card-img-container" style="position: relative;">
+                <div class="card-img-container" style="position: relative;">
+                    <a href="<%= exhibition.url %>" target="_blank" style="display: block; width: 100%; height: 100%;">
                         <img class="card-img"
                             src="<%= exhibition.coverUrl || 'https://via.placeholder.com/300x180?text=No+Image' %>"
                             alt="<%= exhibition.title %>">
+                    </a>
 
-                        <% if (userId) { %>
-                            <button
-                                class="priority-badge badge-btn <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>"
-                                data-current="<%= exhibition.priority || 'Recommended' %>"
-                                onclick="cyclePriority(event, '<%= exhibition.id %>', this)">
-                                <%= exhibition.priority || 'Recommended' %>
-                            </button>
-                            <% } else { %>
-                                <span
-                                    class="priority-badge <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>">
-                                    <%= exhibition.priority || 'Recommended' %>
-                                </span>
-                                <% } %>
-                    </div>
+                    <% if (userId) { %>
+                        <button
+                            class="priority-badge badge-btn <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>"
+                            data-current="<%= exhibition.priority || 'Recommended' %>"
+                            onclick="cyclePriority(event, '<%= exhibition.id %>', this)">
+                            <%= exhibition.priority || 'Recommended' %>
+                        </button>
+                    <% } else { %>
+                        <span
+                            class="priority-badge <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>">
+                            <%= exhibition.priority || 'Recommended' %>
+                        </span>
+                    <% } %>
+                </div>
+
+                <a href="<%= exhibition.url %>" target="_blank" class="card-link"
+                    style="text-decoration: none; color: inherit; display: flex; flex-direction: column; flex-grow: 1;">
                     <div class="card-content">
                         <h2 class="card-title">
                             <%= exhibition.title %>
                         </h2>
-                        <p class="card-venue">📍 <%= exhibition.venueName || "Unknown Venue" %>
+                        <p class="card-venue" style="display: flex; align-items: center; justify-content: space-between;">
+                            <span>📍 <%= exhibition.venueName || "Unknown Venue" %></span>
+                            <% if (userId) { %>
+                                <span class="venue-heart-btn" 
+                                    data-venue-id="<%= exhibition.venueId %>" 
+                                    data-is-high-value="<%= exhibition.venue.isHighValue %>"
+                                    onclick="toggleVenueFavorite(event, this)"
+                                    style="font-size: 16px; cursor: pointer; transition: transform 0.1s; color: <%= exhibition.venue.isHighValue ? '#d73a49' : 'inherit' %>;"
+                                    onmouseover="this.style.transform='scale(1.2)'"
+                                    onmouseout="this.style.transform='scale(1)'">
+                                    <%= exhibition.venue.isHighValue ? '♥️' : '♡' %>
+                                </span>
+                            <% } %>
                         </p>
                         <div class="card-meta">
                             <span>📅 <%= exhibition.endDate ? exhibition.endDate.toLocaleDateString('en-GB', {
                                     day: 'numeric' , month: 'short' }) : 'TBD' %></span>
+                            <% if (exhibition.isClosingSoon) { %>
+                                <strong style="color: #d73a49; margin-left: 8px;">Closing Soon!</strong>
+                            <% } else if (exhibition.isNew) { %>
+                                <strong style="color: #3742fa; margin-left: 8px;">New This Week!</strong>
+                            <% } %>
                         </div>
                     </div>
                 </a>
@@ -306,6 +386,12 @@
             buttonElement.classList.remove(oldClass);
             buttonElement.classList.add(newClass);
 
+            // Update the parent card's data-priority attribute so filtering works immediately
+            const cardElement = buttonElement.closest('.card');
+            if (cardElement) {
+                cardElement.setAttribute('data-priority', nextState);
+            }
+
             // 4. Silent Save to Database
             try {
                 const response = await fetch('/update-priority', {
@@ -322,6 +408,100 @@
                 console.error("Network error:", err);
             }
         }
+
+        async function toggleVenueFavorite(event, spanElement) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const venueId = spanElement.getAttribute('data-venue-id');
+            const isCurrentlyHighValue = spanElement.getAttribute('data-is-high-value') === 'true';
+            const nextState = !isCurrentlyHighValue;
+
+            // Optimistic UI update for ALL instances of this venue on the page
+            document.querySelectorAll(`.venue-heart-btn[data-venue-id="${venueId}"]`).forEach(el => {
+                el.innerText = nextState ? '♥️' : '♡';
+                el.setAttribute('data-is-high-value', nextState.toString());
+                el.style.color = nextState ? '#d73a49' : 'inherit';
+
+                // Update the parent card's data attributes and optimistic priority
+                const cardElement = el.closest('.card');
+                if (cardElement) {
+                    cardElement.setAttribute('data-is-high-value', nextState.toString());
+                    
+                    const currentPriority = cardElement.getAttribute('data-priority');
+                    const badgeBtn = cardElement.querySelector('.priority-badge');
+                    
+                    if (nextState && currentPriority === 'Nice to See') {
+                        cardElement.setAttribute('data-priority', 'Recommended');
+                        if (badgeBtn) {
+                            badgeBtn.innerText = 'Recommended';
+                            badgeBtn.setAttribute('data-current', 'Recommended');
+                            badgeBtn.classList.replace('nice-to-see', 'recommended');
+                        }
+                    } else if (!nextState && currentPriority === 'Recommended') {
+                        cardElement.setAttribute('data-priority', 'Nice to See');
+                        if (badgeBtn) {
+                            badgeBtn.innerText = 'Nice to See';
+                            badgeBtn.setAttribute('data-current', 'Nice to See');
+                            badgeBtn.classList.replace('recommended', 'nice-to-see');
+                        }
+                    }
+                }
+            });
+
+            // Re-apply the current filter to instantly refresh the grid view
+            const activeFilterBtn = document.querySelector('.filter-btn.active');
+            if (activeFilterBtn) {
+                activeFilterBtn.click();
+            }
+
+            try {
+                await fetch('/toggle-favorite-venue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ venueId, isFavorite: nextState })
+                });
+            } catch (err) {
+                console.error("Network error:", err);
+            }
+        }
+
+        function applyFilter(filterType, btnElement) {
+            // Update active button styling
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            const cards = document.querySelectorAll('.card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                let show = false;
+                const priority = card.getAttribute('data-priority');
+                const isNew = card.getAttribute('data-is-new') === 'true';
+                const isClosingSoon = card.getAttribute('data-is-closing-soon') === 'true';
+                const isHighValue = card.getAttribute('data-is-high-value') === 'true';
+                const isFree = card.getAttribute('data-is-free') === 'true';
+
+                // By default, hide 'Ignore' cards unless explicitly requested
+                if (filterType === 'All') show = (priority !== 'Ignore');
+                else if (filterType === 'New This Week') show = isNew && (priority !== 'Ignore');
+                else if (filterType === 'Closing Soon') show = isClosingSoon && (priority !== 'Ignore');
+                else if (filterType === 'High Value') show = isHighValue && (priority !== 'Ignore');
+                else if (filterType === 'Free') show = isFree && (priority !== 'Ignore');
+                else show = (priority === filterType); // Matches Must See, Recommended, Nice to See, Ignore
+
+                card.style.display = show ? 'flex' : 'none';
+                if (show) visibleCount++;
+            });
+
+            document.getElementById('exhibition-count').innerText = visibleCount;
+        }
+
+        // Run the "All" filter on page load to hide 'Ignore' cards immediately
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeBtn = document.querySelector('.filter-btn.active');
+            if (activeBtn) applyFilter('All', activeBtn);
+        });
     </script>
 
 

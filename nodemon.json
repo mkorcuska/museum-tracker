@@ -1,0 +1,11 @@
+{
+  "ignore": [
+    "*.db",
+    "*.db-journal",
+    "sessions.db",
+    "museums.db",
+    "node_modules"
+  ],
+  "watch": ["*"],
+  "ext": "ts,js,json,ejs"
+}
