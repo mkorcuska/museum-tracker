@@ -3,7 +3,8 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = join(__dirname, 'museums.db');
+const dataDir = process.env.DATA_DIR || __dirname;
+const dbPath = join(dataDir, 'museums.db');
 
 const db = new Database(dbPath);
 

@@ -23,6 +23,7 @@ declare module 'express-session' {
 const app = express();
 const SQLiteStore = connectSqlite3(session);
 const resend = new Resend(process.env.RESEND_API_KEY);
+const dataDir = process.env.DATA_DIR || '.';
 
 // 5. APP CONFIGURATION & MIDDLEWARE
 app.set('trust proxy', 1);
@@ -36,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
     store: new SQLiteStore({
         db: 'sessions.db',
-        dir: '.'
+        dir: dataDir
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key',
     resave: false,
