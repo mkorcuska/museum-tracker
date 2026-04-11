@@ -15,7 +15,8 @@ function loadHighValueVenues(): string[] {
     }
 }
 
-const CACHE_FILE = 'data.json';
+const dataDir = process.env.DATA_DIR || '.';
+const CACHE_FILE = `${dataDir}/data.json`;
 
 export async function getParisExhibitions(userId?: number): Promise<Exhibition[]> {
     let rawResults: any[] = [];
