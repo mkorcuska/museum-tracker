@@ -52,8 +52,6 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         fs.writeFileSync(CACHE_FILE, JSON.stringify(rawResults, null, 2));
     }
 
-// ... (fetch rawResults logic remains exactly the same) ...
-
     const venuesMap = new Map<string, Venue>();
     
     // 2. Fetch User Preferences if logged in
