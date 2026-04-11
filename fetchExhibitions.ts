@@ -30,8 +30,24 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
 
     if (rawResults.length === 0) {
         console.log("🔄 Fetching fresh data...");
-        // ... (Your existing while loop that fetches from the API) ...
-        // After the loop finishes:
+        
+        let allResults: any[] = [];
+        let offset = 0;
+        const limit = 100;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(`${PARIS_API_URL}?limit=${limit}&offset=${offset}&refine=qfap_tags%3A%22Expo%22`);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                allResults = allResults.concat(data.results);
+                offset += limit;
+            } else {
+                hasMore = false;
+            }
+        }
+        
         rawResults = allResults;
         fs.writeFileSync(CACHE_FILE, JSON.stringify(rawResults, null, 2));
     }
