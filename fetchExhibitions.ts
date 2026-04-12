@@ -20,6 +20,10 @@ function loadHighValueVenues(): string[] {
 
 const dataDir = process.env.DATA_DIR || '.';
 const CACHE_FILE = join(dataDir, 'exhibitions_cache.json');
+const TAGS_FILE = join(dataDir, 'all_api_tags.json');
+
+// Easily modifiable array of keywords to filter exhibitions
+const VALID_KEYWORDS = ["expo", "peinture", "art contemporain", "beaux-arts", "photo", "exposition"];
 
 export async function getParisExhibitions(userId?: number): Promise<Exhibition[]> {
     let rawResults: any[] = [];
@@ -47,6 +51,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         let offset = 0;
         const limit = 100;
         let hasMore = true;
+        let allUniqueTags = new Set<string>();
 
         while (hasMore) {
             // Fetch broadly without strict 'refine' to catch poorly tagged exhibitions
@@ -60,15 +65,18 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
+                // Harvest all unique tags from the API for analysis
+                data.results.forEach((r: any) => {
+                    const tags = (r.qfap_tags || "").split(';');
+                    tags.forEach((t: string) => {
+                        if (t.trim()) allUniqueTags.add(t.trim());
+                    });
+                });
+
                 const expos = data.results.filter((r: any) => {
                     const tags = (r.qfap_tags || "").toLowerCase();
                     const title = (r.title || "").toLowerCase();
-                    return tags.includes("expo") || 
-                           tags.includes("peinture") || 
-                           tags.includes("art contemporain") ||
-                           tags.includes("beaux-arts") ||
-                           tags.includes("photo") ||
-                           title.includes("exposition");
+                    return VALID_KEYWORDS.some(kw => tags.includes(kw) || title.includes(kw));
                 });
                 allResults = allResults.concat(expos);
                 offset += limit;
@@ -79,6 +87,9 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         
         rawResults = allResults;
         fs.writeFileSync(CACHE_FILE, JSON.stringify(rawResults, null, 2));
+        
+        // Save the harvested tags to a file for easy review
+        fs.writeFileSync(TAGS_FILE, JSON.stringify(Array.from(allUniqueTags).sort(), null, 2));
     }
 
     const venuesMap = new Map<string, Venue>();

@@ -30,6 +30,6 @@ Object.entries(venues)
         console.log(`  - ${venue}: ${count}`);
     });
 
-if (data.length < 30) console.warn(`\n⚠️ WARNING: Count seems very low (${data.length}). Check your VALID_KEYWORDS!`);
-else if (data.length > 200) console.warn(`\n⚠️ WARNING: Count seems very high (${data.length}). Filter might be too broad.`);
+if (data.length < 60) console.warn(`\n⚠️ WARNING: Count seems very low (${data.length}). Check your VALID_KEYWORDS!`);
+else if (data.length > 500) console.warn(`\n⚠️ WARNING: Count seems very high (${data.length}). Filter might be too broad.`);
 else console.log(`\n✅ Exhibition count (${data.length}) is within a reasonable expected range.`);
