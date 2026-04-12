@@ -1,22 +1,25 @@
 import { Exhibition, Venue } from './types.ts';
 import * as fs from 'fs';
 import db from './database'; // Notice: No curly braces!
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const PARIS_API_URL = 'https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/que-faire-a-paris-/records';
 
 // Helper to load your venue list from the text file
 function loadHighValueVenues(): string[] {
     try {
-        const data = fs.readFileSync('high-value-venues.txt', 'utf-8');
+        const data = fs.readFileSync(join(__dirname, 'high-value-venues.txt'), 'utf-8');
         return data.split('\n').map(line => line.trim()).filter(l => l.length > 0);
     } catch (err) {
+        console.error("Warning: Could not load high-value-venues.txt", err);
         return [];
     }
 }
 
 const dataDir = process.env.DATA_DIR || '.';
-const CACHE_FILE = `${dataDir}/data.json`;
+const CACHE_FILE = join(dataDir, 'exhibitions_cache.json');
 
 export async function getParisExhibitions(userId?: number): Promise<Exhibition[]> {
     let rawResults: any[] = [];
@@ -46,11 +49,28 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         let hasMore = true;
 
         while (hasMore) {
-            const response = await fetch(`${PARIS_API_URL}?limit=${limit}&offset=${offset}&refine=qfap_tags%3A%22Expo%22`);
+            // Fetch broadly without strict 'refine' to catch poorly tagged exhibitions
+            const response = await fetch(`${PARIS_API_URL}?limit=${limit}&offset=${offset}`);
+            
+            if (!response.ok) {
+                console.error(`API Error: ${response.status}`);
+                break;
+            }
+            
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
-                allResults = allResults.concat(data.results);
+                const expos = data.results.filter((r: any) => {
+                    const tags = (r.qfap_tags || "").toLowerCase();
+                    const title = (r.title || "").toLowerCase();
+                    return tags.includes("expo") || 
+                           tags.includes("peinture") || 
+                           tags.includes("art contemporain") ||
+                           tags.includes("beaux-arts") ||
+                           tags.includes("photo") ||
+                           title.includes("exposition");
+                });
+                allResults = allResults.concat(expos);
                 offset += limit;
             } else {
                 hasMore = false;
