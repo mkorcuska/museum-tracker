@@ -10,12 +10,14 @@ import { Resend } from 'resend';
 import db from './database';
 import { getParisExhibitions } from './fetchExhibitions.ts';
 import { generateMagicToken } from './auth';
+import { translations } from './translations.ts';
 
 // 3. TYPESCRIPT DECLARATIONS
 declare module 'express-session' {
     interface SessionData {
         userId: number;
         userEmail: string;
+        lang: 'en' | 'fr';
     }
 }
 
@@ -50,6 +52,10 @@ app.use(session({
 
 // Global template variables (Available to all EJS files)
 app.use((req, res, next) => {
+    const lang = req.session.lang || 'en';
+    res.locals.lang = lang;
+    res.locals.t = (key: string) => translations[lang][key] || key;
+
     if (req.session.userId) {
         // Verify user still exists (prevents ghost sessions if DB is reset)
         const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId) as { email: string } | undefined;
@@ -88,9 +94,20 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
+app.get('/set-lang/:lang', (req, res) => {
+    const lang = req.params.lang;
+    if (lang === 'en' || lang === 'fr') {
+        req.session.lang = lang;
+    }
+    res.redirect(req.get('Referrer') || '/');
+});
+
 app.post('/login', async (req, res) => {
+    const lang = req.session.lang || 'en';
+    const t = (key: string) => translations[lang][key] || key;
+
     const { email } = req.body;
-    if (!email) return res.status(400).send("Email is required");
+    if (!email) return res.status(400).send(t('email_required'));
 
     const token = generateMagicToken(email);
 
@@ -101,11 +118,11 @@ app.post('/login', async (req, res) => {
         const { data, error } = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: email,
-            subject: '⭐ Your Paris Museum Tracker Login',
+            subject: t('email_subject'),
             html: `
-                <h2>Welcome back!</h2>
-                <p>Click the link below to log in:</p>
-                <a href="${magicLink}">Log In Now</a>
+                <h2>${t('email_welcome')}</h2>
+                <p>${t('email_click_link')}</p>
+                <a href="${magicLink}">${t('email_log_in_now')}</a>
             `
         });
 
@@ -117,9 +134,9 @@ app.post('/login', async (req, res) => {
         console.log("Resend Success! ID:", data?.id);
         res.send(`
             <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h2>✨ Magic link sent!</h2>
-                <p>Check your inbox.</p>
-                <p style="color: #6a737d; font-size: 14px;">(This page will automatically redirect when you click the link in your email)</p>
+                <h2>${t('magic_link_sent')}</h2>
+                <p>${t('check_inbox')}</p>
+                <p style="color: #6a737d; font-size: 14px;">${t('redirect_msg')}</p>
             </div>
             <script>
                 // Listen for the login success signal from the new tab
@@ -135,6 +152,9 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/verify', (req, res) => {
+    const lang = req.session.lang || 'en';
+    const t = (key: string) => translations[lang][key] || key;
+
     const rawToken = req.query.token as string;
     const cleanToken = rawToken ? rawToken.trim() : '';
 
@@ -146,7 +166,7 @@ app.get('/verify', (req, res) => {
     `).get(cleanToken) as { user_id: number, email: string } | undefined;
 
     if (!tokenRecord) {
-        return res.status(400).send("Link is invalid or expired. Try again.");
+        return res.status(400).send(t('invalid_link'));
     }
 
     req.session.userId = tokenRecord.user_id;
@@ -155,9 +175,9 @@ app.get('/verify', (req, res) => {
 
     res.send(`
         <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-            <h2>✅ Login successful!</h2>
-            <p>You can safely close this window and return to your original tab.</p>
-            <p><a href="/" style="color: #0366d6;">Or click here to continue in this tab</a></p>
+            <h2>${t('login_success')}</h2>
+            <p>${t('close_window')}</p>
+            <p><a href="/" style="color: #0366d6;">${t('continue_in_tab')}</a></p>
         </div>
         <script>
             // Send the signal to the original tab

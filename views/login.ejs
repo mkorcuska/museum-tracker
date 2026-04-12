@@ -1,67 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= lang %>">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Paris Museum Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= t('login_title') %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: sans-serif; 
-            background-color: #f4f4f4; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f6f8fa;
+            color: #24292e;
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
         }
-        .login-card { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 350px; 
-            text-align: center; 
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 15px 0; 
-            box-sizing: border-box; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
+        h2 { margin-top: 0; margin-bottom: 20px; font-weight: 500; }
+        input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
         }
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            background-color: #0366d6; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold;
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0366d6;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        button:hover { background-color: #0056b3; }
-        .back-link { 
-            display: block; 
-            margin-top: 20px; 
-            color: #666; 
-            text-decoration: none; 
-            font-size: 14px; 
-        }
+        button:hover { background-color: #005cc5; }
+        a { color: #0366d6; text-decoration: none; font-size: 14px; }
+        a:hover { text-decoration: underline; }
+        .back-link { margin-top: 25px; display: inline-block; }
+        .lang-toggle { margin-bottom: 20px; font-size: 14px; text-align: right; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h2>Welcome Back</h2>
-        <p>Enter your email to receive a secure login link.</p>
-        
+    <div class="card">
+        <div class="lang-toggle">
+            <a href="/set-lang/en" style="<%= lang === 'en' ? 'text-decoration: underline;' : '' %>">EN</a> | 
+            <a href="/set-lang/fr" style="<%= lang === 'fr' ? 'text-decoration: underline;' : '' %>">FR</a>
+        </div>
+        <h2><%= t('login_heading') %></h2>
         <form action="/login" method="POST">
-            <input type="email" name="email" placeholder="your@email.com" required>
-            <button type="submit">Send Magic Link</button>
+            <input type="email" name="email" placeholder="<%= t('login_email_label') %>" required>
+            <button type="submit"><%= t('login_submit') %></button>
         </form>
-        
-        <a href="/" class="back-link">← Back to Museums</a>
+        <a href="/" class="back-link">&larr; <%= t('login_back') %></a>
     </div>
 </body>
 </html>

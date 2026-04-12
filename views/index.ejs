@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paris Museum Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -17,7 +20,9 @@
 
         h1 {
             text-align: center;
-            color: #0366d6;
+            color: #444646;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.2rem;
         }
 
         .grid {
@@ -264,40 +269,57 @@
 </head>
 
 <body>
-    <nav class="top-nav" style="align-items: center;">
-        <% if (userId) { %>
-            <span style="margin-right: 15px; font-size: 14px; color: #555;">
-                Logged in as: <strong>
-                    <%= userEmail  %>
-                </strong>
-            </span>
-            <a href="/logout">Logout</a>
+    <nav class="top-nav" style="align-items: center; display: flex; justify-content: space-between;">
+        <div style="font-size: 14px;">
+            <a href="/set-lang/en" style="<%= lang === 'en' ? 'text-decoration: underline;' : '' %>">EN</a> | 
+            <a href="/set-lang/fr" style="<%= lang === 'fr' ? 'text-decoration: underline;' : '' %>">FR</a>
+        </div>
+        <div>
+            <% if (userId) { %>
+                <span style="margin-right: 15px; font-size: 14px; color: #555;">
+                    <%= t('logged_in_as') %> <strong><%= userEmail  %></strong>
+                </span>
+                <a href="/logout"><%= t('logout') %></a>
             <% } else { %>
-                <a href="/login">Login</a>
-                <% } %>
+                <a href="/login"><%= t('login') %></a>
+            <% } %>
+        </div>
     </nav>
 
-    <h1>Paris Museum Tracker</h1>
-    <p style="text-align: center; color: #6a737d; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; margin-top: 0; margin-bottom: 30px;">Found <span id="exhibition-count"><%= exhibitions.length %></span> exhibitions.
-    </p>
+    <h1><%= t('title') %></h1>
 
     <div class="filter-bar">
         <div class="filter-row">
-            <button class="filter-btn active" onclick="applyFilter('All', this)">All</button>
-            <button class="filter-btn" onclick="applyFilter('New This Week', this)">New</button>
-            <button class="filter-btn" onclick="applyFilter('Closing Soon', this)">Closing!</button>
-            <button class="filter-btn" onclick="applyFilter('High Value', this)">Favorite Venues</button>
-            <button class="filter-btn" onclick="applyFilter('Free', this)">Free</button>
+            <button class="filter-btn active" onclick="applyFilter('All', this)"><%= t('filter_all') %></button>
+            <button class="filter-btn" onclick="applyFilter('New This Week', this)"><%= t('filter_new') %></button>
+            <button class="filter-btn" onclick="applyFilter('Closing Soon', this)"><%= t('filter_closing') %></button>
+            <button class="filter-btn" onclick="applyFilter('High Value', this)"><%= t('filter_fav') %></button>
+            <button class="filter-btn" onclick="applyFilter('Free', this)"><%= t('filter_free') %></button>
         </div>
         <div class="filter-row">
-            <button class="filter-btn" onclick="applyFilter('Must See', this)">Must See</button>
-            <button class="filter-btn" onclick="applyFilter('Recommended', this)">Recommended</button>
-            <button class="filter-btn" onclick="applyFilter('Nice to See', this)">Nice to See</button>
-            <button class="filter-btn" onclick="applyFilter('Ignore', this)">Ignored</button>
+            <button class="filter-btn" onclick="applyFilter('Must See', this)"><%= t('priority_Must See') %></button>
+            <button class="filter-btn" onclick="applyFilter('Recommended', this)"><%= t('priority_Recommended') %></button>
+            <button class="filter-btn" onclick="applyFilter('Nice to See', this)"><%= t('priority_Nice to See') %></button>
+            <button class="filter-btn" onclick="applyFilter('Ignore', this)"><%= t('priority_Ignore') %></button>
         </div>
     </div>
 
+    <p style="text-align: center; color: #6a737d; font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-top: -10px; letter-spacing: 0.1rem; margin-bottom: 30px;"><%= t('found') %> <span id="exhibition-count"><%= exhibitions.length %></span> <%= t('exhibitions') %>
+    </p>
+
     <div id="exhibition-grid" class="grid">
+        <div id="empty-state" style="display: none; grid-column: 1 / -1; text-align: center; padding: 50px 20px; background-color: #fff; border: 1px dashed #d1d5da; border-radius: 8px;">
+            <div id="empty-state-login" style="display: none;">
+                <h3 style="margin-top: 0; color: #24292e;"><%= t('empty_login_title') %></h3>
+                <p style="color: #586069; margin-bottom: 20px;"><%= t('empty_login_desc') %></p>
+                <a href="/login" style="display: inline-block; padding: 8px 16px; background-color: #0366d6; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;"><%= t('empty_login_btn') %></a>
+            </div>
+            <div id="empty-state-generic" style="display: none;">
+                <h3 style="margin-top: 0; color: #24292e;"><%= t('empty_generic_title') %></h3>
+                <p style="color: #586069;"><%= t('empty_generic_desc') %></p>
+            </div>
+        </div>
+
         <% exhibitions.forEach(exhibition=> { %>
             <div class="card" data-priority="<%= exhibition.priority %>" data-is-new="<%= exhibition.isNew %>" data-is-closing-soon="<%= exhibition.isClosingSoon %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" data-is-free="<%= exhibition.isFree %>">
 
@@ -313,12 +335,12 @@
                             class="priority-badge badge-btn <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>"
                             data-current="<%= exhibition.priority || 'Recommended' %>"
                             onclick="cyclePriority(event, '<%= exhibition.id %>', this)">
-                            <%= exhibition.priority || 'Recommended' %>
+                            <%= t('priority_' + (exhibition.priority || 'Recommended')) %>
                         </button>
                     <% } else { %>
                         <span
                             class="priority-badge <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>">
-                            <%= exhibition.priority || 'Recommended' %>
+                            <%= t('priority_' + (exhibition.priority || 'Recommended')) %>
                         </span>
                     <% } %>
                 </div>
@@ -330,7 +352,7 @@
                             <%= exhibition.title %>
                         </h2>
                         <p class="card-venue" style="display: flex; align-items: center; justify-content: space-between;">
-                            <span>📍 <%= exhibition.venueName || "Unknown Venue" %></span>
+                            <span>📍 <%= exhibition.venueName || t('unknown_venue') %></span>
                             <% if (userId) { %>
                                 <span class="venue-heart-btn" 
                                     data-venue-id="<%= exhibition.venueId %>" 
@@ -344,12 +366,12 @@
                             <% } %>
                         </p>
                         <div class="card-meta">
-                            <span>📅 <%= exhibition.endDate ? exhibition.endDate.toLocaleDateString('en-GB', {
+                            <span>📅 <%= exhibition.endDate ? exhibition.endDate.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
                                     day: 'numeric' , month: 'short' }) : 'TBD' %></span>
                             <% if (exhibition.isClosingSoon) { %>
-                                <strong style="color: #d73a49; margin-left: 8px;">Closing Soon!</strong>
+                                <strong style="color: #d73a49; margin-left: 8px;"><%= t('closing_soon') %></strong>
                             <% } else if (exhibition.isNew) { %>
-                                <strong style="color: #3742fa; margin-left: 8px;">New This Week!</strong>
+                                <strong style="color: #3742fa; margin-left: 8px;"><%= t('new_this_week') %></strong>
                             <% } %>
                         </div>
                     </div>
@@ -361,6 +383,13 @@
     </div>
 
     <script>
+        const priorityTranslations = {
+            'Must See': '<%= t("priority_Must See") %>',
+            'Recommended': '<%= t("priority_Recommended") %>',
+            'Nice to See': '<%= t("priority_Nice to See") %>',
+            'Ignore': '<%= t("priority_Ignore") %>'
+        };
+
         async function cyclePriority(event, exhibitionId, buttonElement) {
             // 1. Stop the <a> tag from opening the museum link!
             event.preventDefault();
@@ -377,7 +406,7 @@
             const nextState = cycleMap[currentState] || 'Must See';
 
             // 3. Instant UI Update (Optimistic)
-            buttonElement.innerText = nextState;
+            buttonElement.innerText = priorityTranslations[nextState];
             buttonElement.setAttribute('data-current', nextState);
 
             // Swap the CSS classes to change the color
@@ -434,14 +463,14 @@
                     if (nextState && currentPriority === 'Nice to See') {
                         cardElement.setAttribute('data-priority', 'Recommended');
                         if (badgeBtn) {
-                            badgeBtn.innerText = 'Recommended';
+                            badgeBtn.innerText = priorityTranslations['Recommended'];
                             badgeBtn.setAttribute('data-current', 'Recommended');
                             badgeBtn.classList.replace('nice-to-see', 'recommended');
                         }
                     } else if (!nextState && currentPriority === 'Recommended') {
                         cardElement.setAttribute('data-priority', 'Nice to See');
                         if (badgeBtn) {
-                            badgeBtn.innerText = 'Nice to See';
+                            badgeBtn.innerText = priorityTranslations['Nice to See'];
                             badgeBtn.setAttribute('data-current', 'Nice to See');
                             badgeBtn.classList.replace('recommended', 'nice-to-see');
                         }
@@ -495,6 +524,21 @@
             });
 
             document.getElementById('exhibition-count').innerText = visibleCount;
+            
+            if (visibleCount === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+                const isLoggedIn = <%= userId ? 'true' : 'false' %>;
+                
+                if (!isLoggedIn && filterType === 'Must See') {
+                    document.getElementById('empty-state-login').style.display = 'block';
+                    document.getElementById('empty-state-generic').style.display = 'none';
+                } else {
+                    document.getElementById('empty-state-login').style.display = 'none';
+                    document.getElementById('empty-state-generic').style.display = 'block';
+                }
+            } else {
+                document.getElementById('empty-state').style.display = 'none';
+            }
         }
 
         // Run the "All" filter on page load to hide 'Ignore' cards immediately
@@ -507,7 +551,7 @@
 
     <footer
         style="text-align: center; margin-top: 50px; padding: 20px; color: #6a737d; font-size: 12px; border-top: 1px solid #e1e4e8;">
-        Generated on 4/10/2026, 11:51:15 AM | Source: Paris Open Data | Coding & Dinner Deadline: Imminent
+        <%= t('footer_generated') %> <%= new Date().toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US') %> | <%= t('footer_source') %>: Paris Open Data | <%= t('footer_deadline') %>
     </footer>
 </body>
 
