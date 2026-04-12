@@ -99,7 +99,7 @@ app.post('/login', async (req, res) => {
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
+            from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
             to: email,
             subject: '⭐ Your Paris Museum Tracker Login',
             html: `
@@ -115,7 +115,19 @@ app.post('/login', async (req, res) => {
         }
 
         console.log("Resend Success! ID:", data?.id);
-        res.send(`<h2>✨ Magic link sent!</h2><p>Check your inbox.</p>`);
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+                <h2>✨ Magic link sent!</h2>
+                <p>Check your inbox.</p>
+                <p style="color: #6a737d; font-size: 14px;">(This page will automatically redirect when you click the link in your email)</p>
+            </div>
+            <script>
+                // Listen for the login success signal from the new tab
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'museum_login_sync') window.location.href = '/';
+                });
+            </script>
+        `);
     } catch (error) {
         console.error("System level error:", error);
         return res.status(500).send("The server failed to reach Resend.");
@@ -141,7 +153,19 @@ app.get('/verify', (req, res) => {
     req.session.userEmail = tokenRecord.email;
     db.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').run(cleanToken);
 
-    res.redirect('/');
+    res.send(`
+        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h2>✅ Login successful!</h2>
+            <p>You can safely close this window and return to your original tab.</p>
+            <p><a href="/" style="color: #0366d6;">Or click here to continue in this tab</a></p>
+        </div>
+        <script>
+            // Send the signal to the original tab
+            localStorage.setItem('museum_login_sync', Date.now().toString());
+            // Attempt to automatically close this new tab (works in most browsers when opened via email link)
+            setTimeout(() => { window.close(); }, 2000);
+        </script>
+    `);
 });
 
 app.get('/logout', (req, res) => {
