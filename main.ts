@@ -52,7 +52,12 @@ app.use(session({
 
 // Global template variables (Available to all EJS files)
 app.use((req, res, next) => {
-    const lang = req.session.lang || 'en';
+    if (!req.session.lang) {
+        // Detect the best match from the browser, default to 'en' if no match
+        const detected = req.acceptsLanguages('en', 'fr');
+        req.session.lang = (detected === 'fr') ? 'fr' : 'en';
+    }
+    const lang = req.session.lang;
     res.locals.lang = lang;
     res.locals.t = (key: string) => translations[lang][key] || key;
 
