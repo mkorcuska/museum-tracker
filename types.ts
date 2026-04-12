@@ -51,7 +51,7 @@ export class Exhibition {
     this.venueName = venue.name;
     this.startDate = new Date(raw.date_start);
     this.endDate = new Date(raw.date_end);
-    this.url = raw.url || raw.contact_url;
+    this.url = raw.contact_url || raw.access_link ||  raw.url;
     this.coverUrl = raw.cover_url;
     this.isFree = raw.price_type === 'gratuit';
 
