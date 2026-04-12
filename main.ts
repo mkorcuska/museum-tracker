@@ -207,7 +207,10 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server ready on port ${PORT}`);
 
     console.log("Checking for initial data sync in background...");
-    getParisExhibitions()
-        .then(data => console.log(`Initial sync complete. Found ${data.length} exhibitions.`))
-        .catch(err => console.error("Initial sync failed:", err));
+    // Delay the initial sync slightly so Render's port scanner can connect first
+    setTimeout(() => {
+        getParisExhibitions()
+            .then(data => console.log(`Initial sync complete. Found ${data.length} exhibitions.`))
+            .catch(err => console.error("Initial sync failed:", err));
+    }, 1000);
 });

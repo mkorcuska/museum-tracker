@@ -107,29 +107,34 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         [];
     const venuePrefMap = new Map(userVenuePrefs.map((p: any) => [p.venue_id, p.is_favorite === 1]));
 
-    const exhibitions = rawResults.map(record => {
-        const venueName = record.address_name || record.lieu || "Unknown Venue";
-        if (!venuesMap.has(venueName)) {
-            const venue = new Venue(venueName, highValueVenues);
-            venuesMap.set(venueName, venue);
-            venue.save(); // Save the venue to the database
-        }
-        
-        const baseVenue = venuesMap.get(venueName)!;
-        const userVenue = Object.create(baseVenue);
-        Object.assign(userVenue, baseVenue);
-        if (venuePrefMap.has(userVenue.id)) {
-            userVenue.isHighValue = venuePrefMap.get(userVenue.id)!;
-        }
+    // Wrap the heavy database insertions in a single transaction for a massive performance gain
+    const mapAndSave = db.transaction(() => {
+        return rawResults.map(record => {
+            const venueName = record.address_name || record.lieu || "Unknown Venue";
+            if (!venuesMap.has(venueName)) {
+                const venue = new Venue(venueName, highValueVenues);
+                venuesMap.set(venueName, venue);
+                venue.save(); // Save the venue to the database
+            }
+            
+            const baseVenue = venuesMap.get(venueName)!;
+            const userVenue = Object.create(baseVenue);
+            Object.assign(userVenue, baseVenue);
+            if (venuePrefMap.has(userVenue.id)) {
+                userVenue.isHighValue = venuePrefMap.get(userVenue.id)!;
+            }
 
-        // 3. Look up if the user tagged this specific exhibition
-        const userTag = prefMap.get(record.id?.toString());
-        
-        // Pass the tag to the constructor
-        const exhibition = new Exhibition(record, userVenue, userTag);
-        exhibition.save(); // Save the exhibition to the database
-        return exhibition;
+            // 3. Look up if the user tagged this specific exhibition
+            const userTag = prefMap.get(record.id?.toString());
+            
+            // Pass the tag to the constructor
+            const exhibition = new Exhibition(record, userVenue, userTag);
+            exhibition.save(); // Save the exhibition to the database
+            return exhibition;
+        });
     });
+    
+    const exhibitions = mapAndSave();
 
     // Sort the results
     exhibitions.sort((a, b) => {
