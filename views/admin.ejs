@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<%- include('partials/head') %>
+<body>
+    <%- include('partials/nav') %>
+
+    <div style="text-align: center; position: relative;">
+        <h1>Data Curation Dashboard</h1>
+        <p style="color: #586069;">Analyze what the API provides vs. what the app rejects.</p>
+        <form action="/admin/refresh" method="POST" style="position: absolute; top: 10px; right: 20px;"><button type="submit" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🔄 Force Data Refresh</button></form>
+    </div>
+
+    <% 
+        // Separate tags into Active and Unused
+        const activeTags = tags.filter(tag => validKeywords.some(kw => tag.toLowerCase().includes(kw)));
+        const unusedTags = tags.filter(tag => !validKeywords.some(kw => tag.toLowerCase().includes(kw)));
+    %>
+
+    <div style="display: flex; gap: 30px; margin-top: 30px; align-items: flex-start;">
+        
+        <!-- Left Column: Navigation / Tags -->
+        <div style="flex: 1; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e1e4e8; position: sticky; top: 20px; max-height: 80vh; overflow-y: auto;">
+            <h2 style="margin-top: 0;">API Dictionary</h2>
+            <p style="font-size: 13px; color: #666;">Click an unused tag to preview what you are missing.</p>
+            
+            <button onclick="filterByTag(null)" style="width: 100%; text-align: left; padding: 8px; margin-bottom: 15px; cursor: pointer; background: #f6f8fa; border: 1px solid #d1d5da; border-radius: 4px; font-weight: bold;">
+                Show All Rejected
+            </button>
+
+            <h3 style="font-size: 14px; color: #0366d6; margin-bottom: 5px; text-transform: uppercase;">Active Keywords (<%= activeTags.length %>)</h3>
+            <ul style="list-style-type: none; padding: 0; margin: 0; font-size: 13px;">
+                <% activeTags.forEach(tag => { %>
+                    <li style="padding: 6px 4px; color: #0366d6; border-bottom: 1px solid #f1f8ff;">
+                        ✓ <%= tag %>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <hr style="border: none; border-top: 1px solid #e1e4e8; margin: 20px 0;">
+
+            <h3 style="font-size: 14px; color: #586069; margin-bottom: 5px; text-transform: uppercase;">Unused Tags (<%= unusedTags.length %>)</h3>
+            <ul style="list-style-type: none; padding: 0; margin: 0; font-size: 13px;">
+                <% unusedTags.forEach(tag => { 
+                    const safeTagId = 'tag-' + encodeURIComponent(tag).replace(/%/g, '_');
+                %>
+                    <li id="<%= safeTagId %>" class="sidebar-tag" onclick="filterByTag('<%= tag %>')" style="padding: 6px 4px; color: #586069; border-bottom: 1px solid #fafbfc; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f6f8fa'" onmouseout="if(this.style.fontWeight !== 'bold') this.style.backgroundColor='transparent'">
+                        <%= tag %>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+
+        <!-- Right Column: Rejected Events -->
+        <div style="flex: 2; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e1e4e8;">
+            <h2 id="rejected-title" style="margin-top: 0;">Rejected Events</h2>
+            <p id="rejected-subtitle" style="font-size: 13px; color: #666;"></p>
+            
+            <div id="rejected-container" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                <!-- Populated dynamically by JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Safely inject the rejected events array into client-side JavaScript
+        const allRejected = <%- JSON.stringify(rejected).replace(/</g, '\\u003c') %>;
+
+        function renderRejected(items, filterTag = null) {
+            const container = document.getElementById('rejected-container');
+            const title = document.getElementById('rejected-title');
+            const subtitle = document.getElementById('rejected-subtitle');
+
+            if (filterTag) {
+                title.innerText = `Previewing tag: "${filterTag}" (${items.length})`;
+                subtitle.innerText = `These events were rejected but contain the tag you clicked.`;
+            } else {
+                title.innerText = `All Rejected Events (${allRejected.length})`;
+                subtitle.innerText = `Showing the first 100 rejected events for performance.`;
+            }
+
+            const itemsToRender = items.slice(0, 100);
+            
+            if (itemsToRender.length === 0) {
+                container.innerHTML = '<p style="padding: 20px; text-align: center; color: #666; background: #f6f8fa; border-radius: 6px;">No events found for this tag in the rejected list.</p>';
+                return;
+            }
+
+            container.innerHTML = itemsToRender.map(event => `
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 16px;">${event.url ? `<a href="${event.url}" target="_blank" style="color: #0366d6; text-decoration: none;">${event.title || 'Untitled'} ↗</a>` : (event.title || 'Untitled')}</h3>
+                    <p style="margin: 0 0 5px 0; font-size: 13px; color: #d73a49;">
+                        <strong>Tags:</strong> ${event.qfap_tags || 'No tags provided'}
+                    </p>
+                    <p style="margin: 0; font-size: 13px; color: #586069;">
+                        <strong>Venue:</strong> ${event.address_name || event.lieu || 'Unknown'}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        function filterByTag(tag) {
+            // Reset sidebar styling
+            document.querySelectorAll('.sidebar-tag').forEach(el => {
+                el.style.fontWeight = 'normal';
+                el.style.backgroundColor = 'transparent';
+            });
+
+            if (!tag) {
+                renderRejected(allRejected);
+            } else {
+                // Highlight selected tag safely
+                const safeTagId = 'tag-' + encodeURIComponent(tag).replace(/%/g, '_');
+                const el = document.getElementById(safeTagId);
+                if (el) {
+                    el.style.fontWeight = 'bold';
+                    el.style.backgroundColor = '#e1e4e8';
+                }
+
+                // Filter the events locally
+                const filtered = allRejected.filter(event => {
+                    const eventTags = event.qfap_tags || "";
+                    return eventTags.includes(tag);
+                });
+                renderRejected(filtered, tag);
+            }
+        }
+
+        // Initialize list on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRejected(allRejected);
+        });
+    </script>
+
+</body>
+</html>

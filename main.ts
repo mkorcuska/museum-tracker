@@ -5,10 +5,12 @@ import session from 'express-session';
 import connectSqlite3 from 'connect-sqlite3';
 import crypto from 'crypto';
 import { Resend } from 'resend';
+import * as fs from 'fs';
+import { join } from 'path';
 
 // 2. LOCAL IMPORTS
 import db from './database';
-import { getParisExhibitions } from './fetchExhibitions.ts';
+import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions.ts';
 import { generateMagicToken } from './auth';
 import { translations } from './translations.ts';
 
@@ -34,6 +36,7 @@ app.set('view engine', 'ejs');
 // Body parsers (The "box cutters")
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public')); // Serve static assets like CSS and JS
 
 // Session management
 app.use(session({
@@ -92,6 +95,29 @@ app.get('/', async (req, res) => {
     const exhibitions = await getParisExhibitions(userId);
 
     res.render('index', { exhibitions });
+});
+
+// --- Admin Page ---
+app.get('/admin', (req, res) => {
+    // In a production app, you would add: if (!req.session.userId) return res.redirect('/login');
+    // For now, we leave it open so you can test it easily.
+    
+    const tagsPath = join(dataDir, 'all_api_tags.json');
+    const rejectedPath = join(dataDir, 'rejected_cache.json');
+    
+    const tags = fs.existsSync(tagsPath) ? JSON.parse(fs.readFileSync(tagsPath, 'utf-8')) : [];
+    const rejected = fs.existsSync(rejectedPath) ? JSON.parse(fs.readFileSync(rejectedPath, 'utf-8')) : [];
+    
+    res.render('admin', { tags, rejected, validKeywords: VALID_KEYWORDS });
+});
+
+app.post('/admin/refresh', async (req, res) => {
+    const cachePath = join(dataDir, 'exhibitions_cache.json');
+    if (fs.existsSync(cachePath)) {
+        fs.unlinkSync(cachePath); // Delete the cache file
+    }
+    await getParisExhibitions();  // Force a fresh fetch
+    res.redirect('/admin');       // Reload the page
 });
 
 // --- Authentication ---

@@ -21,9 +21,10 @@ function loadHighValueVenues(): string[] {
 const dataDir = process.env.DATA_DIR || '.';
 const CACHE_FILE = join(dataDir, 'exhibitions_cache.json');
 const TAGS_FILE = join(dataDir, 'all_api_tags.json');
+const REJECTED_FILE = join(dataDir, 'rejected_cache.json');
 
 // Easily modifiable array of keywords to filter exhibitions
-const VALID_KEYWORDS = ["expo", "peinture", "art contemporain", "beaux-arts", "photo", "exposition"];
+export const VALID_KEYWORDS = ["expo", "peinture", "art contemporain", "beaux-arts", "photo", "exposition"];
 
 export async function getParisExhibitions(userId?: number): Promise<Exhibition[]> {
     let rawResults: any[] = [];
@@ -52,6 +53,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         const limit = 100;
         let hasMore = true;
         let allUniqueTags = new Set<string>();
+        let allRejected: any[] = [];
 
         while (hasMore) {
             // Fetch broadly without strict 'refine' to catch poorly tagged exhibitions
@@ -73,10 +75,15 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
                     });
                 });
 
-                const expos = data.results.filter((r: any) => {
+                const expos: any[] = [];
+                data.results.forEach((r: any) => {
                     const tags = (r.qfap_tags || "").toLowerCase();
                     const title = (r.title || "").toLowerCase();
-                    return VALID_KEYWORDS.some(kw => tags.includes(kw) || title.includes(kw));
+                    if (VALID_KEYWORDS.some(kw => tags.includes(kw) || title.includes(kw))) {
+                        expos.push(r);
+                    } else {
+                        allRejected.push(r);
+                    }
                 });
                 allResults = allResults.concat(expos);
                 offset += limit;
@@ -90,6 +97,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         
         // Save the harvested tags to a file for easy review
         fs.writeFileSync(TAGS_FILE, JSON.stringify(Array.from(allUniqueTags).sort(), null, 2));
+        fs.writeFileSync(REJECTED_FILE, JSON.stringify(allRejected, null, 2));
     }
 
     const venuesMap = new Map<string, Venue>();
@@ -134,19 +142,59 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         });
     });
     
-    const exhibitions = mapAndSave();
+    let exhibitions = mapAndSave();
+
+    // 4. Fetch Past History from DB
+    // If a user marked an exhibition as 'Attended' or 'Must See', we want to keep it in their history
+    // even if it has dropped off the live API.
+    if (userId) {
+        const processedIds = new Set(exhibitions.map(e => e.id));
+        
+        const pastExhibitions = db.prepare(`
+            SELECT e.*, v.name as v_name, v.is_high_value as v_high_value, up.priority as user_priority
+            FROM exhibitions e
+            JOIN user_preferences up ON e.id = up.exhibition_id
+            JOIN venues v ON e.venue_id = v.id
+            WHERE up.user_id = ? AND up.priority IN ('Attended', 'Must See')
+        `).all(userId) as any[];
+
+        for (const row of pastExhibitions) {
+            if (!processedIds.has(row.id)) {
+                const venue = new Venue(row.v_name, []);
+                venue.id = row.venue_id; // restore original deterministic ID
+                venue.isHighValue = row.v_high_value === 1;
+
+                const rawFake = {
+                    id: row.id,
+                    title: row.title,
+                    date_start: row.start_date,
+                    date_end: row.end_date,
+                    url: row.url, 
+                    cover_url: row.cover_url,
+                    price_type: row.is_free ? 'gratuit' : 'payant'
+                };
+                const exhibition = new Exhibition(rawFake, venue, row.user_priority);
+                exhibitions.push(exhibition);
+                processedIds.add(row.id);
+            }
+        }
+    }
 
     // Sort the results
     exhibitions.sort((a, b) => {
         // 1. Assign a rank based on custom filtering/sorting rules
         const getRank = (expo: Exhibition) => {
+            if (!expo.isActive) {
+                return expo.priority === 'Attended' ? 8 : 9; // Inactive history at bottom
+            }
+            if (expo.priority === 'Attended') return 7; // Active attended
             if (expo.isNew && expo.venue.isHighValue) return 1;
             if (expo.priority === 'Must See' && expo.isClosingSoon) return 2;
             if (expo.priority === 'Recommended' && expo.isClosingSoon) return 3;
             if (expo.priority === 'Must See') return 4;
             if (expo.priority === 'Recommended') return 5;
             if (expo.priority === 'Nice to See') return 6;
-            return 7; // The rest ('Ignore' or unknown)
+            return 10; // The rest ('Ignore' or unknown)
         };
 
         const rankDiff = getRank(a) - getRank(b);

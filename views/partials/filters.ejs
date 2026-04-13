@@ -1,0 +1,16 @@
+<div class="filter-bar">
+    <div class="filter-row">
+        <button class="filter-btn active" onclick="applyFilter('All', this)"><%= t('filter_all') %></button>
+        <button class="filter-btn" onclick="applyFilter('New This Week', this)"><%= t('filter_new') %></button>
+        <button class="filter-btn" onclick="applyFilter('Closing Soon', this)"><%= t('filter_closing') %></button>
+        <button class="filter-btn" onclick="applyFilter('High Value', this)"><%= t('filter_fav') %></button>
+        <button class="filter-btn" onclick="applyFilter('Free', this)"><%= t('filter_free') %></button>
+    </div>
+    <div class="filter-row">
+        <button class="filter-btn" onclick="applyFilter('Must See', this)"><%= t('priority_Must See') %></button>
+        <button class="filter-btn" onclick="applyFilter('Recommended', this)"><%= t('priority_Recommended') %></button>
+        <button class="filter-btn" onclick="applyFilter('Nice to See', this)"><%= t('priority_Nice to See') %></button>
+        <button class="filter-btn" onclick="applyFilter('Attended', this)"><%= t('filter_attended') %></button>
+        <button class="filter-btn" onclick="applyFilter('Ignore', this)"><%= t('priority_Ignore') %></button>
+    </div>
+</div>

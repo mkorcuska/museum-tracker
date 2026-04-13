@@ -1,0 +1,41 @@
+<div class="card <%= exhibition.isActive ? '' : 'inactive' %>" data-priority="<%= exhibition.priority %>" data-is-new="<%= exhibition.isNew %>" data-is-closing-soon="<%= exhibition.isClosingSoon %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" data-is-free="<%= exhibition.isFree %>" data-is-active="<%= exhibition.isActive %>">
+    
+    <div class="card-img-container">
+        <a href="<%= exhibition.url %>" target="_blank" style="display: block; width: 100%; height: 100%;">
+            <img class="card-img" src="<%= exhibition.coverUrl || 'https://via.placeholder.com/300x180?text=No+Image' %>" alt="<%= exhibition.title %>">
+        </a>
+        <% if (userId) { %>
+            <button class="priority-badge badge-btn <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>" data-current="<%= exhibition.priority || 'Recommended' %>" onclick="cyclePriority(event, '<%= exhibition.id %>', this)">
+                <%= t('priority_' + (exhibition.priority || 'Recommended')) %>
+            </button>
+        <% } else { %>
+            <span class="priority-badge <%= (exhibition.priority || 'recommended').replace(/\s+/g, '-').toLowerCase() %>">
+                <%= t('priority_' + (exhibition.priority || 'Recommended')) %>
+            </span>
+        <% } %>
+    </div>
+
+    <a href="<%= exhibition.url %>" target="_blank" class="card-link">
+        <div class="card-content">
+            <h2 class="card-title"><%= exhibition.title %></h2>
+            <p class="card-venue" style="display: flex; align-items: center; justify-content: space-between;">
+                <span>📍 <%= exhibition.venueName || t('unknown_venue') %></span>
+                <% if (userId) { %>
+                    <span class="venue-heart-btn" data-venue-id="<%= exhibition.venueId %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" onclick="toggleVenueFavorite(event, this)" style="font-size: 16px; cursor: pointer; transition: transform 0.1s; color: <%= exhibition.venue.isHighValue ? '#d73a49' : 'inherit' %>;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <%= exhibition.venue.isHighValue ? '♥️' : '♡' %>
+                    </span>
+                <% } %>
+            </p>
+            <div class="card-meta">
+                <span>📅 <%= exhibition.endDate ? exhibition.endDate.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' }) : 'TBD' %></span>
+                <% if (!exhibition.isActive) { %>
+                    <strong style="color: #6a737d; margin-left: 8px;"><%= t('past_exhibition') %></strong>
+                <% } else if (exhibition.isClosingSoon) { %>
+                    <strong style="color: #d73a49; margin-left: 8px;"><%= t('closing_soon') %></strong>
+                <% } else if (exhibition.isNew) { %>
+                    <strong style="color: #3742fa; margin-left: 8px;"><%= t('new_this_week') %></strong>
+                <% } %>
+            </div>
+        </div>
+    </a>
+</div>
