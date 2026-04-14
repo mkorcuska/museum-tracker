@@ -1,4 +1,4 @@
-<div class="card <%= exhibition.isActive ? '' : 'inactive' %>" data-priority="<%= exhibition.priority %>" data-is-new="<%= exhibition.isNew %>" data-is-closing-soon="<%= exhibition.isClosingSoon %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" data-is-free="<%= exhibition.isFree %>" data-is-active="<%= exhibition.isActive %>">
+<div class="card <%= exhibition.isActive ? '' : 'inactive' %>" data-priority="<%= exhibition.priority %>" data-is-new="<%= exhibition.isNew %>" data-is-closing-soon="<%= exhibition.isClosingSoon %>" data-is-high-value="<%= exhibition.venue.isHighValue %>" data-is-free="<%= exhibition.isFree %>" data-is-active="<%= exhibition.isActive %>" data-end-date="<%= exhibition.endDate ? exhibition.endDate.toISOString() : '' %>">
     
     <div class="card-img-container">
         <a href="<%= exhibition.url %>" target="_blank" style="display: block; width: 100%; height: 100%;">

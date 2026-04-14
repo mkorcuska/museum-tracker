@@ -104,8 +104,14 @@ function applyFilter(filterType, btnElement) {
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
 
-    const cards = document.querySelectorAll('.card');
+    const grid = document.getElementById('exhibition-grid');
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    
+    // Clean up existing section headers
+    grid.querySelectorAll('.section-header').forEach(el => el.remove());
+
     let visibleCount = 0;
+    const visibleCards = [];
 
     cards.forEach(card => {
         let show = false;
@@ -126,7 +132,51 @@ function applyFilter(filterType, btnElement) {
         else show = isActive && (priority === filterType);
 
         card.style.display = show ? 'flex' : 'none';
-        if (show) visibleCount++;
+        if (show) {
+            visibleCount++;
+            visibleCards.push(card);
+        }
+    });
+
+    // Define priority sort order
+    const priorityOrder = {
+        'Must See': 1,
+        'Recommended': 2,
+        'Nice to See': 3,
+        'Unprioritized': 4,
+        'Attended': 5,
+        'Ignore': 6
+    };
+
+    // Sort visible cards
+    visibleCards.sort((a, b) => {
+        const dateA = new Date(a.getAttribute('data-end-date') || '2099-01-01').getTime();
+        const dateB = new Date(b.getAttribute('data-end-date') || '2099-01-01').getTime();
+        
+        if (filterType === 'Closing Soon' || filterType === 'New This Week') {
+            return dateA - dateB;
+        } else {
+            const prioA = priorityOrder[a.getAttribute('data-priority')] || 99;
+            const prioB = priorityOrder[b.getAttribute('data-priority')] || 99;
+            if (prioA !== prioB) return prioA - prioB;
+            return dateA - dateB; // Secondary sort by date
+        }
+    });
+
+    // Re-append sorted cards and inject section headers
+    let currentPriority = null;
+    const showHeaders = ['All', 'High Value', 'Free'].includes(filterType);
+
+    visibleCards.forEach(card => {
+        const priority = card.getAttribute('data-priority');
+        if (showHeaders && priority !== currentPriority) {
+            const header = document.createElement('div');
+            header.className = 'section-header';
+            header.innerText = window.appConfig.sectionHeaders[priority] || window.appConfig.translations[priority] || priority;
+            grid.appendChild(header);
+            currentPriority = priority;
+        }
+        grid.appendChild(card);
     });
 
     document.getElementById('exhibition-count').innerText = visibleCount;

@@ -181,16 +181,26 @@ h1 {
 
 .filter-row {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.filter-row::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 .filter-btn {
-    padding: 6px 12px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border: 1px solid #d1d5da;
+    border-radius: 20px;
+    background: #ffffff;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
@@ -204,8 +214,9 @@ h1 {
 }
 
 .filter-btn.active {
-    background-color: #e1e4e8;
-    color: #111;
+    background-color: #444646;
+    color: #ffffff;
+    border-color: #444646;
     font-weight: 500;
 }
 
@@ -217,4 +228,16 @@ h1 {
 .card.inactive:hover {
     opacity: 1;
     filter: grayscale(0%);
+}
+
+.section-header {
+    grid-column: 1 / -1;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #24292e;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e1e4e8;
 }
