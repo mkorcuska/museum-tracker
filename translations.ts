@@ -42,7 +42,7 @@ export const translations: Record<'en' | 'fr', Record<string, string>> = {
         'continue_in_tab': 'Or click here to continue in this tab',
         'invalid_link': 'Link is invalid or expired. Try again.',
         'email_required': 'Email is required',
-        'email_subject': '⭐ Your Paris Museum Tracker Login',
+        'email_subject': 'Your Paris seesome.art Login',
         'email_welcome': 'Welcome back!',
         'email_click_link': 'Click the link below to log in:',
         'email_log_in_now': 'Log In Now'
@@ -90,7 +90,7 @@ export const translations: Record<'en' | 'fr', Record<string, string>> = {
         'continue_in_tab': 'Ou cliquez ici pour continuer dans cet onglet',
         'invalid_link': 'Le lien est invalide ou expiré. Veuillez réessayer.',
         'email_required': 'L\'adresse e-mail est requise',
-        'email_subject': '⭐ Votre connexion au Paris Museum Tracker',
+        'email_subject': 'Votre connexion au Paris seesome.art',
         'email_welcome': 'Bon retour !',
         'email_click_link': 'Cliquez sur le lien ci-dessous pour vous connecter :',
         'email_log_in_now': 'Se connecter maintenant'

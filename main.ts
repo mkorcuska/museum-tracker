@@ -151,9 +151,15 @@ app.post('/login', async (req, res) => {
             to: email,
             subject: t('email_subject'),
             html: `
-                <h2>${t('email_welcome')}</h2>
-                <p>${t('email_click_link')}</p>
-                <a href="${magicLink}">${t('email_log_in_now')}</a>
+                <div style="font-family: Helvetica, Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 30px; border: 1px solid #e1e4e8; border-radius: 8px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+                    <h2 style="color: #24292e; margin-top: 0;">${t('email_welcome')}</h2>
+                    <p style="color: #586069; font-size: 16px; line-height: 1.5;">${t('email_click_link')}</p>
+                    <div style="margin: 30px 0;">
+                        <a href="${magicLink}" style="background-color: #0366d6; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">
+                            ${t('email_log_in_now')}
+                        </a>
+                    </div>
+                </div>
             `
         });
 
