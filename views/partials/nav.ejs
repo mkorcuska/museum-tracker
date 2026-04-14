@@ -1,22 +1,21 @@
 <nav class="top-nav">
-    <div style="display: flex; align-items: center;">
-        <a href="/"><img src="/SeeSomeArtLogoHoriz.png" alt="Museum Tracker Logo" style="height: 55px; margin-right: 15px;"></a>
+    <div class="nav-brand">
+        <a href="/"><img src="/SeeSomeArtLogoHoriz.png" alt="Museum Tracker Logo" class="nav-logo"></a>
     </div>
-    <div style="font-size: 14px;">
-        <a href="/set-lang/en" style="<%= lang === 'en' ? 'text-decoration: underline;' : '' %>">EN</a> | 
-        <a href="/set-lang/fr" style="<%= lang === 'fr' ? 'text-decoration: underline;' : '' %>">FR</a>
-    </div>
-    <div>
-        <a href="/help" style="margin-right: 15px; font-size: 14px; color: #444646; text-decoration: none; font-weight: 500;">
-            ❓ <%= t('help') %>
+    <div class="nav-menu">
+        <div class="nav-lang">
+            <a href="/set-lang/en" class="<%= lang === 'en' ? 'active-lang' : '' %>">EN</a> | 
+            <a href="/set-lang/fr" class="<%= lang === 'fr' ? 'active-lang' : '' %>">FR</a>
+        </div>
+        <a href="/help" class="nav-link mobile-hide">
+            ❓ <span class="nav-text"><%= t('help') %></span>
         </a>
         <% if (userId) { %>
-            <a href="/profile" style="margin-right: 15px; font-size: 14px; color: #444646; text-decoration: none; font-weight: 500;">
-                👤 <%= t('profile') %>
+            <a href="/profile" class="nav-link">
+                👤 <span class="nav-text"><%= t('profile') %></span>
             </a>
-            <a href="/logout"><%= t('logout') %></a>
+            <a href="/logout" class="nav-link"><%= t('logout') %></a>
         <% } else { %>
-            <a href="/login"><%= t('login') %></a>
+            <a href="/login" class="nav-link"><%= t('login') %></a>
         <% } %>
-    </div>
 </nav>
