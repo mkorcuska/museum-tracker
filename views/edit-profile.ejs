@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+
+<%- include('partials/head') %>
+
+<body>
+    <%- include('partials/nav') %>
+
+    <h1><%= t('edit_profile') %></h1>
+
+    <div style="background: white; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; max-width: 500px; margin: 0 auto;">
+        <form action="/profile/edit" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label for="name" style="display: block; margin-bottom: 5px; font-weight: 500; color: #24292e;"><%= t('profile_name') %></label>
+                <input type="text" id="name" name="name" value="<%= user.name || '' %>" style="width: 100%; padding: 8px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <div>
+                <label for="username" style="display: block; margin-bottom: 5px; font-weight: 500; color: #24292e;"><%= t('profile_username') %></label>
+                <input type="text" id="username" name="username" value="<%= user.username || '' %>" placeholder="e.g. art-lover-99" style="width: 100%; padding: 8px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <div>
+                <label for="city" style="display: block; margin-bottom: 5px; font-weight: 500; color: #24292e;"><%= t('profile_city') %></label>
+                <input type="text" id="city" name="city" value="<%= user.city || 'Paris' %>" style="width: 100%; padding: 8px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <div>
+                <label for="picture_url" style="display: block; margin-bottom: 5px; font-weight: 500; color: #24292e;"><%= t('picture_url') %></label>
+                <input type="url" id="picture_url" name="picture_url" value="<%= user.picture_url || '' %>" placeholder="https://..." style="width: 100%; padding: 8px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" style="padding: 10px 16px; background-color: #0366d6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;"><%= t('save_changes') %></button>
+                <a href="/profile" style="padding: 10px 16px; background-color: #f1f1f1; color: #24292e; text-decoration: none; border: 1px solid #d1d5da; border-radius: 6px; text-align: center; font-weight: 500;"><%= t('cancel') %></a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

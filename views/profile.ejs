@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+
+<%- include('partials/head') %>
+
+<body>
+    <%- include('partials/nav') %>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><%= typeof isPublic !== 'undefined' && isPublic ? (user.name || 'Anonymous') : t('profile') %></h1>
+        <% if (typeof isPublic === 'undefined' || !isPublic) { %>
+            <a href="/profile/edit" style="padding: 6px 12px; background: #f1f1f1; border: 1px solid #d1d5da; border-radius: 6px; text-decoration: none; color: #24292e; font-size: 14px; font-weight: 500;">✏️ <%= t('edit_profile') %></a>
+        <% } %>
+    </div>
+
+    <% if ((typeof isPublic === 'undefined' || !isPublic) && user.username) { %>
+        <div style="margin-bottom: 20px; padding: 12px 15px; background-color: #f1f8ff; border: 1px solid #c8e1ff; border-radius: 6px; color: #0366d6; font-size: 14px;">
+            <strong><%= t('public_link') %></strong> <a href="/u/<%= user.username %>" style="color: #0366d6; font-weight: 500;"><%= protocol %>://<%= host %>/u/<%= user.username %></a>
+        </div>
+    <% } %>
+
+    <div style="background: white; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; margin-bottom: 40px; display: flex; gap: 30px; align-items: center;">
+        <!-- Profile Picture -->
+        <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #f1f1f1; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid #d1d5da;">
+            <% if (user.picture_url) { %>
+                <img src="<%= user.picture_url %>" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
+            <% } else { %>
+                <span style="font-size: 40px; color: #a3aab1;">👤</span>
+            <% } %>
+        </div>
+        
+        <!-- Profile Details -->
+        <div>
+            <h2 style="margin: 0 0 10px 0; font-family: 'Playfair Display', serif; color: #24292e;">
+                <%= user.name || "Anonymous User" %>
+            </h2>
+            <% if (typeof isPublic === 'undefined' || !isPublic) { %>
+                <p style="margin: 0 0 5px 0; color: #586069; font-size: 14px;">✉️ <%= user.email %></p>
+            <% } %>
+            <p style="margin: 0; color: #586069; font-size: 14px;">📍 <%= user.city || "Paris" %></p>
+        </div>
+    </div>
+
+    <!-- Must See Section -->
+    <div style="margin-bottom: 50px;">
+        <div class="section-header" style="margin-top: 0;"><%= t('profile_must_see') %> <span class="section-header-count">(<%= mustSee.length %>)</span></div>
+        <div class="grid">
+            <% if (mustSee.length > 0) { %>
+                <% mustSee.forEach(exhibition => { %>
+                    <%- include('partials/exhibition-card', { exhibition: exhibition }) %>
+                <% }); %>
+            <% } else { %>
+                <p style="color: #6a737d; grid-column: 1 / -1;"><%= t('empty_generic_desc') %></p>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Attended Section -->
+    <div style="margin-bottom: 50px;">
+        <div class="section-header"><%= t('profile_attended') %> <span class="section-header-count">(<%= attended.length %>)</span></div>
+        <div class="grid">
+            <% if (attended.length > 0) { %>
+                <% attended.forEach(exhibition => { %>
+                    <%- include('partials/exhibition-card', { exhibition: exhibition }) %>
+                <% }); %>
+            <% } else { %>
+                <p style="color: #6a737d; grid-column: 1 / -1;"><%= t('empty_generic_desc') %></p>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

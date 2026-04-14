@@ -241,3 +241,8 @@ h1 {
     padding-bottom: 5px;
     border-bottom: 2px solid #e1e4e8;
 }
+
+.section-header-count {
+    color: #62676c;
+    font-weight: 400;
+}

@@ -225,6 +225,70 @@ app.get('/verify', (req, res) => {
     `);
 });
 
+app.get('/profile', async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.redirect('/login');
+
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    
+    // Fetch all exhibitions to easily grab the user's specific lists
+    const allExhibitions = await getParisExhibitions(userId);
+    const attended = allExhibitions.filter(e => e.priority === 'Attended');
+    const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
+
+    res.render('profile', { 
+        user, 
+        attended, 
+        mustSee, 
+        isPublic: false,
+        host: req.get('host'),
+        protocol: req.protocol
+    });
+});
+
+app.get('/u/:username', async (req, res) => {
+    const username = req.params.username;
+    const profileUser = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
+    
+    if (!profileUser) return res.status(404).send('Profile not found');
+
+    const allExhibitions = await getParisExhibitions(profileUser.id);
+    const attended = allExhibitions.filter(e => e.priority === 'Attended');
+    const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
+
+    // We reuse the profile view, but pass a flag indicating it's the public version
+    res.render('profile', { user: profileUser, attended, mustSee, isPublic: true });
+});
+
+app.get('/profile/edit', (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.redirect('/login');
+
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    res.render('edit-profile', { user });
+});
+
+app.post('/profile/edit', (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.redirect('/login');
+
+    let { name, username, city, picture_url } = req.body;
+    
+    // Sanitize username (lowercase, letters, numbers, and hyphens only)
+    let formattedUsername = username ? username.toLowerCase().replace(/[^a-z0-9-]/g, '') : null;
+
+    // Prevent collision if two users try to claim the exact same handle
+    if (formattedUsername) {
+        const existing = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(formattedUsername, userId) as { id: number } | undefined;
+        if (existing) formattedUsername = formattedUsername + Math.floor(Math.random() * 1000);
+    }
+
+    db.prepare('UPDATE users SET name = ?, username = ?, city = ?, picture_url = ? WHERE id = ?')
+      .run(name || null, formattedUsername || null, city || 'Paris', picture_url || null, userId);
+
+    res.redirect('/profile');
+});
+
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {

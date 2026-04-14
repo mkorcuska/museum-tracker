@@ -167,12 +167,22 @@ function applyFilter(filterType, btnElement) {
     let currentPriority = null;
     const showHeaders = ['All', 'High Value', 'Free'].includes(filterType);
 
+    // Pre-calculate counts for headers
+    const priorityCounts = {};
+    if (showHeaders) {
+        visibleCards.forEach(card => {
+            const p = card.getAttribute('data-priority');
+            priorityCounts[p] = (priorityCounts[p] || 0) + 1;
+        });
+    }
+
     visibleCards.forEach(card => {
         const priority = card.getAttribute('data-priority');
         if (showHeaders && priority !== currentPriority) {
             const header = document.createElement('div');
             header.className = 'section-header';
-            header.innerText = window.appConfig.sectionHeaders[priority] || window.appConfig.translations[priority] || priority;
+            const headerText = window.appConfig.sectionHeaders[priority] || window.appConfig.translations[priority] || priority;
+            header.innerHTML = `${headerText} <span class="section-header-count">(${priorityCounts[priority]})</span>`;
             grid.appendChild(header);
             currentPriority = priority;
         }

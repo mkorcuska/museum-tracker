@@ -33,6 +33,10 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
+        name TEXT,
+        username TEXT UNIQUE,
+        city TEXT,
+        picture_url TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -67,6 +71,12 @@ db.exec(`
     );
 `);
 
+// Safely add columns to existing users table if they don't exist yet
+try { db.exec("ALTER TABLE users ADD COLUMN name TEXT;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN city TEXT;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN picture_url TEXT;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN username TEXT;"); } catch (e) { /* Column already exists */ }
+try { db.exec("CREATE UNIQUE INDEX idx_users_username ON users(username);"); } catch (e) { /* Index already exists */ }
 
 // --- 2. THE GETTER ---
 export async function getAllEventsFromDB() {

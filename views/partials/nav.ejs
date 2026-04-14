@@ -5,9 +5,9 @@
     </div>
     <div>
         <% if (userId) { %>
-            <span style="margin-right: 15px; font-size: 14px; color: #555;">
-                <%= t('logged_in_as') %> <strong><%= userEmail  %></strong>
-            </span>
+            <a href="/profile" style="margin-right: 15px; font-size: 14px; color: #444646; text-decoration: none; font-weight: 500;">
+                👤 <%= t('profile') %>
+            </a>
             <a href="/logout"><%= t('logout') %></a>
         <% } else { %>
             <a href="/login"><%= t('login') %></a>
