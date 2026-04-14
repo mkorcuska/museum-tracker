@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+
+<%- include('partials/head') %>
+
+<body>
+    <%- include('partials/nav') %>
+
+    <div id="help-content" style="background: white; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; margin-bottom: 40px; line-height: 1.6;">
+        <p style="color: #6a737d; text-align: center;">Loading...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        fetch('/help.md')
+            .then(response => {
+                if (!response.ok) throw new Error('Help file not found');
+                return response.text();
+            })
+            .then(text => {
+                document.getElementById('help-content').innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                document.getElementById('help-content').innerHTML = '<p style="color: #d73a49; text-align: center;">Could not load help content. Please ensure /public/help.md exists.</p>';
+            });
+    </script>
+</body>
+</html>

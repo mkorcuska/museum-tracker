@@ -97,6 +97,10 @@ app.get('/', async (req, res) => {
     res.render('index', { exhibitions });
 });
 
+app.get('/help', (req, res) => {
+    res.render('help');
+});
+
 // --- Admin Page ---
 app.get('/admin', (req, res) => {
     // In a production app, you would add: if (!req.session.userId) return res.redirect('/login');

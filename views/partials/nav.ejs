@@ -1,9 +1,15 @@
 <nav class="top-nav">
+    <div style="display: flex; align-items: center;">
+        <a href="/"><img src="/SeeSomeArtLogoHoriz.png" alt="Museum Tracker Logo" style="height: 55px; margin-right: 15px;"></a>
+    </div>
     <div style="font-size: 14px;">
         <a href="/set-lang/en" style="<%= lang === 'en' ? 'text-decoration: underline;' : '' %>">EN</a> | 
         <a href="/set-lang/fr" style="<%= lang === 'fr' ? 'text-decoration: underline;' : '' %>">FR</a>
     </div>
     <div>
+        <a href="/help" style="margin-right: 15px; font-size: 14px; color: #444646; text-decoration: none; font-weight: 500;">
+            ❓ <%= t('help') %>
+        </a>
         <% if (userId) { %>
             <a href="/profile" style="margin-right: 15px; font-size: 14px; color: #444646; text-decoration: none; font-weight: 500;">
                 👤 <%= t('profile') %>

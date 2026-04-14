@@ -1,8 +1,8 @@
-# **seesome.art Help Guide**
+# **SeeSome.art Help Guide**
 
 ## A curated tracker for the Paris art scene.
 
-Paris hosts hundreds of exhibitions at any given moment. **seesome.art** helps you filter the noise and build a personal roadmap of the shows that actually matter to you.
+Paris hosts hundreds of exhibitions at any given moment. **SeeSome.art** helps you filter the noise and build a personal roadmap of the shows that actually matter to you.
 
 ---
 
@@ -20,7 +20,7 @@ We organize your feed into sections to help you decide what to do today. Within 
 
 ## 📥 Managing the Noise
 
-The goal of **seesome.art** is to focus your efforts. For every new show, you have four choices:
+The goal of **SeeSome.art** is to focus your efforts. For every new show, you have four choices:
 
 1. **Promote it** to **Must See** if it’s a high priority. Or **Nice to See** if you like.  
 2. **Leave it** in **Recommended** if you trust the venue but aren't ready to commit yet.  
