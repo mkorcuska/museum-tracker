@@ -6,11 +6,12 @@ async function cyclePriority(event, exhibitionId, buttonElement) {
     // 2. Define the cycle order
     const currentState = buttonElement.getAttribute('data-current');
     const cycleMap = {
+        'Unprioritized': 'Recommended',
         'Recommended': 'Must See',
-        'Must See': 'Attended',
-        'Attended': 'Nice to See',
+        'Must See': 'Nice to See',
         'Nice to See': 'Ignore',
-        'Ignore': 'Must See'
+        'Ignore': 'Unprioritized',
+        'Attended': 'Unprioritized'
     };
     const nextState = cycleMap[currentState] || 'Must See';
 
@@ -64,19 +65,19 @@ async function toggleVenueFavorite(event, spanElement) {
             const currentPriority = cardElement.getAttribute('data-priority');
             const badgeBtn = cardElement.querySelector('.priority-badge');
             
-            if (nextState && currentPriority === 'Nice to See') {
+            if (nextState && currentPriority === 'Unprioritized') {
                 cardElement.setAttribute('data-priority', 'Recommended');
                 if (badgeBtn) {
                     badgeBtn.innerText = window.appConfig.translations['Recommended'];
                     badgeBtn.setAttribute('data-current', 'Recommended');
-                    badgeBtn.classList.replace('nice-to-see', 'recommended');
+                    badgeBtn.classList.replace('unprioritized', 'recommended');
                 }
             } else if (!nextState && currentPriority === 'Recommended') {
-                cardElement.setAttribute('data-priority', 'Nice to See');
+                cardElement.setAttribute('data-priority', 'Unprioritized');
                 if (badgeBtn) {
-                    badgeBtn.innerText = window.appConfig.translations['Nice to See'];
-                    badgeBtn.setAttribute('data-current', 'Nice to See');
-                    badgeBtn.classList.replace('recommended', 'nice-to-see');
+                    badgeBtn.innerText = window.appConfig.translations['Unprioritized'];
+                    badgeBtn.setAttribute('data-current', 'Unprioritized');
+                    badgeBtn.classList.replace('recommended', 'unprioritized');
                 }
             }
         }

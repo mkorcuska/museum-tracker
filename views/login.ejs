@@ -25,6 +25,12 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         h2 { margin-top: 0; margin-bottom: 20px; font-weight: 500; }
+        .login-benefits {
+            color: #586069;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
         input[type="email"] {
             width: 100%;
             padding: 12px;
@@ -60,6 +66,7 @@
             <a href="/set-lang/fr" style="<%= lang === 'fr' ? 'text-decoration: underline;' : '' %>">FR</a>
         </div>
         <h2><%= t('login_heading') %></h2>
+        <p class="login-benefits"><%= t('login_benefits') %></p>
         <form action="/login" method="POST">
             <input type="email" name="email" placeholder="<%= t('login_email_label') %>" required>
             <button type="submit"><%= t('login_submit') %></button>

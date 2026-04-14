@@ -104,6 +104,7 @@ h1 {
 .nice-to-see { background-color: #0366d6; }
 .attended { background-color: #28a745; }
 .ignore { background-color: #6a737d; }
+.unprioritized { background-color: #444646; }
 
 .card-content {
     padding: 15px;

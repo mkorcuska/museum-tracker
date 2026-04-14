@@ -194,6 +194,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
             if (expo.priority === 'Must See') return 4;
             if (expo.priority === 'Recommended') return 5;
             if (expo.priority === 'Nice to See') return 6;
+            if (expo.priority === 'Unprioritized') return 7;
             return 10; // The rest ('Ignore' or unknown)
         };
 

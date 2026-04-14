@@ -39,7 +39,7 @@ export class Exhibition {
   venueId: string;
   startDate: Date;
   endDate: Date;
-  priority: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore';
+  priority: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore' | 'Unprioritized';
   isFree: boolean;
   coverUrl?: string;
   url: string;
@@ -47,7 +47,7 @@ export class Exhibition {
   isClosingSoon: boolean;
   isActive: boolean;
 
-  constructor(raw: any, venue: Venue, userTag?: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore' | string) {
+  constructor(raw: any, venue: Venue, userTag?: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore' | 'Unprioritized' | string) {
     this.id = raw.id?.toString();
     this.title = raw.title || "Untitled";
     this.venue = venue;
@@ -87,7 +87,7 @@ export class Exhibition {
     }
   }
 
-  private calculatePriority(raw: any, venue: Venue): 'Must See' | 'Recommended' | 'Nice to See' | 'Ignore' | 'Attended' {
+  private calculatePriority(raw: any, venue: Venue): 'Must See' | 'Recommended' | 'Nice to See' | 'Ignore' | 'Attended' | 'Unprioritized' {
     const title = this.title.toLowerCase();
 
     // Ignore rules (workshops/stages)
@@ -102,9 +102,7 @@ export class Exhibition {
     // Must See rules
     if (venue.isHighValue) return 'Recommended';
 
-    return 'Nice to See';
-
-
+    return 'Unprioritized';
   }
   save() {
     const stmt = db.prepare(`
