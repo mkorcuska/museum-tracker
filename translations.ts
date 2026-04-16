@@ -82,7 +82,7 @@ export const translations: Record<'en' | 'fr', Record<string, string>> = {
         'digest_title': "Your Weekly Digest from SeeSome.art",
         'digest_new_favorites': "New This Week (Favorite Venues)",
         'digest_no_new_favorites': "No new exhibitions from your favorite venues this week.",
-        'digest_see_all_new': "Click here to see all new exhibitions.",
+        'digest_see_all_new': "See All New Exhibitions.",
         'digest_closing_soon': "Closing Soon",
         'digest_nothing_closing': "Nothing on your radar is closing immediately.",
         'digest_must_see': "Your Must See List",

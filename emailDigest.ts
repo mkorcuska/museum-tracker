@@ -146,6 +146,7 @@ async function generateDigestHTMLForUser(user: User): Promise<string | null> {
     } else {
         html += `<p style="color: #666;">${t('digest_no_new_favorites')}</p>`;
     }
+    html += `<div style="margin-top: 10px;"><a href="${process.env.BASE_URL}/?filter=new" style="${buttonStyle}">${t('digest_see_all_new')}</a></div>`;
 
     html += `<h3 style="color: #111; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 30px;">${t('digest_closing_soon')}</h3>`;
     if (closingSoon.length > 0) {
@@ -153,6 +154,7 @@ async function generateDigestHTMLForUser(user: User): Promise<string | null> {
     } else {
         html += `<p style="color: #666;">${t('digest_nothing_closing')}</p>`;
     }
+    html += `<div style="margin-top: 10px;"><a href="${process.env.BASE_URL}/?filter=closing" style="${buttonStyle}">${t('digest_go_to_closing_soon')}</a></div>`;
 
     html += `<h3 style="color: #111; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 30px;">${t('digest_must_see')}</h3>`;
     if (mustSee.length > 0) {
@@ -161,13 +163,7 @@ async function generateDigestHTMLForUser(user: User): Promise<string | null> {
     } else {
         html += `<p style="color: #666;">${t('digest_all_caught_up')}</p>`;
     }
-
-    // Add the CTA buttons
-    html += `<div style="text-align: center; margin: 30px 0 10px 0; padding-top: 20px; border-top: 1px solid #eaeaea;">`;
-    html += `<a href="${process.env.BASE_URL}/profile" style="${buttonStyle}">${t('digest_go_to_must_see')}</a>`;
-    html += `<a href="${process.env.BASE_URL}/?filter=new" style="${buttonStyle}">${t('digest_see_all_new')}</a>`;
-    html += `<a href="${process.env.BASE_URL}/?filter=closing" style="${buttonStyle}">${t('digest_go_to_closing_soon')}</a>`;
-    html += `</div>`;
+    html += `<div style="margin-top: 10px;"><a href="${process.env.BASE_URL}/profile" style="${buttonStyle}">${t('digest_go_to_must_see')}</a></div>`;
 
     const unsubscribeLink = `${process.env.BASE_URL}/profile/edit`;
     html += `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">${t('digest_receiving_because')} <a href="${unsubscribeLink}" style="color: #999; text-decoration: underline;">${t('digest_unsubscribe')}</a></div></div>`;
