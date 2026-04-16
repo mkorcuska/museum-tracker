@@ -62,12 +62,16 @@ app.use((req, res, next) => {
     }
     const lang = req.session.lang;
     res.locals.lang = lang;
+    res.locals.isAdmin = false; // Default to false
     res.locals.t = (key: string) => translations[lang][key] || key;
 
     if (req.session.userId) {
         // Verify user still exists (prevents ghost sessions if DB is reset)
         const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId) as { email: string } | undefined;
         if (user) {
+            if ((req.session.userEmail || user.email) === 'mkorcuska@gmail.com') {
+                res.locals.isAdmin = true;
+            }
             res.locals.userId = req.session.userId;
             res.locals.userEmail = req.session.userEmail || user.email;
             next();
@@ -101,11 +105,19 @@ app.get('/help', (req, res) => {
     res.render('help');
 });
 
-// --- Admin Page ---
-app.get('/admin', (req, res) => {
-    // In a production app, you would add: if (!req.session.userId) return res.redirect('/login');
-    // For now, we leave it open so you can test it easily.
-    
+// --- Admin Routes (Protected) ---
+const adminRouter = express.Router();
+
+// Middleware to protect all admin routes
+adminRouter.use((req, res, next) => {
+    if (res.locals.isAdmin) {
+        return next();
+    }
+    // If not admin, send a forbidden error or redirect.
+    res.status(403).send('Access Denied. You do not have permission to view this page.');
+});
+
+adminRouter.get('/', (req, res) => {
     const tagsPath = join(dataDir, 'all_api_tags.json');
     const rejectedPath = join(dataDir, 'rejected_cache.json');
     const cachePath = join(dataDir, 'exhibitions_cache.json');
@@ -122,7 +134,7 @@ app.get('/admin', (req, res) => {
     res.render('admin', { tags, rejected, validKeywords: VALID_KEYWORDS, lastRefresh });
 });
 
-app.get('/admin/raw-data', (req, res) => {
+adminRouter.get('/raw-data', (req, res) => {
     const cachePath = join(dataDir, 'exhibitions_cache.json');
     if (fs.existsSync(cachePath)) {
         res.header("Content-Type", "application/json");
@@ -132,12 +144,11 @@ app.get('/admin/raw-data', (req, res) => {
     }
 });
 
-app.get('/admin/add', (req, res) => {
-    // A real app would have an admin check here
+adminRouter.get('/add', (req, res) => {
     res.render('add-exhibition', { error: null });
 });
 
-app.post('/admin/add', (req, res) => {
+adminRouter.post('/add', (req, res) => {
     const { title, venueName, startDate, endDate, url, coverUrl, isFree } = req.body;
 
     if (!title || !venueName || !startDate || !endDate) {
@@ -175,8 +186,7 @@ app.post('/admin/add', (req, res) => {
     }
 });
 
-app.get('/admin/edit/:id', (req, res) => {
-    // A real app would have an admin check here
+adminRouter.get('/edit/:id', (req, res) => {
     const exhibitionId = req.params.id;
 
     // Security check: only allow editing of manual entries
@@ -207,8 +217,7 @@ app.get('/admin/edit/:id', (req, res) => {
     res.render('edit-exhibition', { exhibition, error: null });
 });
 
-app.post('/admin/edit/:id', (req, res) => {
-    // A real app would have an admin check here
+adminRouter.post('/edit/:id', (req, res) => {
     const exhibitionId = req.params.id;
     const { title, venueName, startDate, endDate, url, coverUrl, isFree } = req.body;
 
@@ -239,15 +248,16 @@ app.post('/admin/edit/:id', (req, res) => {
     }
 });
 
-app.post('/admin/refresh', async (req, res) => {
+adminRouter.post('/refresh', async (req, res) => {
     const cachePath = join(dataDir, 'exhibitions_cache.json');
     if (fs.existsSync(cachePath)) {
         fs.unlinkSync(cachePath); // Delete the cache file
     }
     await getParisExhibitions();  // Force a fresh fetch
-    res.redirect('/admin');       // Reload the page
+    res.redirect('/admin');
 });
 
+app.use('/admin', adminRouter);
 // --- Authentication ---
 app.get('/login', (req, res) => {
     res.render('login');

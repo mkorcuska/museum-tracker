@@ -11,6 +11,11 @@
             ❓ <span class="nav-text"><%= t('help') %></span>
         </a>
         <% if (userId) { %>
+            <% if (isAdmin) { %>
+                <a href="/admin" class="nav-link">
+                    ⚙️ <span class="nav-text"><%= t('admin') %></span>
+                </a>
+            <% } %>
             <a href="/profile" class="nav-link">
                 👤 <span class="nav-text"><%= t('profile') %></span>
             </a>
