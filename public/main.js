@@ -23,7 +23,7 @@ async function cyclePriority(event, exhibitionId, buttonElement) {
     const oldClass = currentState.replace(/\s+/g, '-').toLowerCase();
     const newClass = nextState.replace(/\s+/g, '-').toLowerCase();
     buttonElement.classList.remove(oldClass);
-    buttonElement.classList.add(newClass);
+    buttonElement.classListadd(newClass);
 
     // Update the parent card's data-priority attribute so filtering works immediately
     const cardElement = buttonElement.closest('.card');

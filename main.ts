@@ -97,8 +97,15 @@ app.use((req, res, next) => {
 app.get('/', async (req, res) => {
     const userId = req.session.userId;
     const exhibitions = await getParisExhibitions(userId);
+    let exhibitions = await getParisExhibitions(userId);
+    const { filter } = req.query;
 
     res.render('index', { exhibitions });
+    if (filter === 'new') {
+        exhibitions = exhibitions.filter(e => e.isNew);
+    }
+
+    res.render('index', { exhibitions, filter });
 });
 
 app.get('/help', (req, res) => {
@@ -257,6 +264,92 @@ adminRouter.post('/refresh', async (req, res) => {
     res.redirect('/admin');
 });
 
+adminRouter.get('/test-digest', async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).send("Not logged in");
+
+    const user = db.prepare('SELECT lang, wants_digest FROM users WHERE id = ?').get(userId) as { lang: 'en' | 'fr', wants_digest: 0 | 1 };
+    if (!user) return res.status(404).send("User not found.");
+
+    if (user.wants_digest === 0) {
+        return res.send("<h3>This user has opted out of digests. No email would be sent.</h3><p><a href='/profile/edit'>Change preference</a></p>");
+    }
+
+    const t = (key: string) => translations[user.lang][key] || key;
+
+    // Grab all exhibitions customized for this specific user
+    const exhibitions = await getParisExhibitions(userId);
+    
+    // 1. New this week from favorite venues
+    const newFavorites = exhibitions.filter(e => 
+        e.isNew && e.venue.isHighValue && e.priority !== 'Ignore' && e.priority !== 'Attended'
+    );
+
+    // 2. Closing soon (Favorite OR Must See)
+    const closingSoon = exhibitions.filter(e => 
+        e.isClosingSoon && (e.venue.isHighValue || e.priority === 'Must See') && 
+        e.priority !== 'Ignore' && e.priority !== 'Attended' &&
+        !newFavorites.includes(e) // Prevent duplicates if it's both new AND closing soon
+        !newFavorites.some(nf => nf.id === e.id)
+    );
+
+    const seenIds = new Set([...newFavorites, ...closingSoon].map(e => e.id));
+
+    // 3. Must see (not already listed above)
+    const mustSee = exhibitions.filter(e => 
+        e.priority === 'Must See' && 
+        !seenIds.has(e.id) && 
+        e.priority !== 'Ignore' && e.priority !== 'Attended'
+        e.priority === 'Must See' && !seenIds.has(e.id) && e.priority !== 'Ignore' && e.priority !== 'Attended'
+    );
+
+    // Bail out if there is absolutely nothing to show
+    if (newFavorites.length === 0 && closingSoon.length === 0 && mustSee.length === 0) {
+        return res.send("<h3>Digest would be empty. No email would be sent to this user.</h3>");
+    }
+
+    // Very basic HTML template for testing the structure
+    let html = `<div style="font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">`;
+    html += `<h2 style="text-align: center;">🎨 Your Weekly Art Digest</h2><hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;" />`;
+    html += `<h2 style="text-align: center;">🎨 ${t('digest_title')}</h2><hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;" />`;
+    
+    html += `<h3 style="color: #d73a49;">✨ New This Week (Favorite Venues)</h3>`;
+    html += `<h3 style="color: #d73a49;">✨ ${t('digest_new_favorites')}</h3>`;
+    if (newFavorites.length > 0) {
+        newFavorites.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name}</p>`);
+    } else {
+        html += `<p style="color: #666;">No new exhibitions from your favorite venues this week. <a href="/" style="color: #0366d6;">Click here to see all new exhibitions.</a></p>`;
+        html += `<p style="color: #666;">${t('digest_no_new_favorites')} <a href="/?filter=new" style="color: #0366d6;">${t('digest_see_all_new')}</a></p>`;
+    }
+
+    html += `<h3 style="color: #d73a49; margin-top: 30px;">⏳ Closing Soon</h3>`;
+    html += `<h3 style="color: #d73a49; margin-top: 30px;">⏳ ${t('digest_closing_soon')}</h3>`;
+    if (closingSoon.length > 0) {
+        closingSoon.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name} <span style="color: #d73a49; font-size: 0.9em;">(Closes ${e.endDate.toLocaleDateString()})</span></p>`);
+        closingSoon.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name} <span style="color: #d73a49; font-size: 0.9em;">(Closes ${e.endDate.toLocaleDateString(user.lang)})</span></p>`);
+    } else {
+        html += `<p style="color: #666;">Nothing on your radar is closing immediately.</p>`;
+        html += `<p style="color: #666;">${t('digest_nothing_closing')}</p>`;
+    }
+
+    html += `<h3 style="color: #d73a49; margin-top: 30px;">🔥 Your Must See List</h3>`;
+    html += `<h3 style="color: #d73a49; margin-top: 30px;">🔥 ${t('digest_must_see')}</h3>`;
+    if (mustSee.length > 0) {
+        mustSee.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name}</p>`);
+        html += `<p style="font-size: 0.9em; font-style: italic; color: #555;">Don't forget to schedule your visit to your Must See exhibitions!</p>`;
+        html += `<p style="font-size: 0.9em; font-style: italic; color: #555;">${t('digest_must_see_reminder')}</p>`;
+    } else {
+        html += `<p style="color: #666;">You're all caught up on your Must See list!</p>`;
+        html += `<p style="color: #666;">${t('digest_all_caught_up')}</p>`;
+    }
+
+    html += `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">You are receiving this because you opted in to weekly digests. <a href="#" style="color: #999; text-decoration: underline;">Unsubscribe</a></div></div>`;
+    const unsubscribeLink = `${req.protocol}://${req.get('host')}/profile/edit`;
+    html += `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">${t('digest_receiving_because')} <a href="${unsubscribeLink}" style="color: #999; text-decoration: underline;">${t('digest_unsubscribe')}</a></div></div>`;
+    
+    res.send(html);
+});
+
 app.use('/admin', adminRouter);
 // --- Authentication ---
 app.get('/login', (req, res) => {
@@ -411,6 +504,7 @@ app.post('/profile/edit', (req, res) => {
     if (!userId) return res.redirect('/login');
 
     let { name, username, city, picture_url } = req.body;
+    let { name, username, city, picture_url, wants_digest } = req.body;
     
     // Sanitize username (lowercase, letters, numbers, and hyphens only)
     let formattedUsername = username ? username.toLowerCase().replace(/[^a-z0-9-]/g, '') : null;
@@ -423,6 +517,10 @@ app.post('/profile/edit', (req, res) => {
 
     db.prepare('UPDATE users SET name = ?, username = ?, city = ?, picture_url = ? WHERE id = ?')
       .run(name || null, formattedUsername || null, city || 'Paris', picture_url || null, userId);
+    const wantsDigestInt = wants_digest === 'on' ? 1 : 0;
+
+    db.prepare('UPDATE users SET name = ?, username = ?, city = ?, picture_url = ?, wants_digest = ? WHERE id = ?')
+      .run(name || null, formattedUsername || null, city || 'Paris', picture_url || null, wantsDigestInt, userId);
 
     res.redirect('/profile');
 });

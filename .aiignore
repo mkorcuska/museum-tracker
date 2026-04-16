@@ -1,0 +1,7 @@
+# Files to hide from the AI context to save tokens and speed up responses
+
+# Ignore massive data dumps
+exhibitions_cache.json
+
+# Ignore dependency lock files which are very large and not useful for most tasks
+package-lock.json
