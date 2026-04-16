@@ -37,3 +37,4 @@
 - When writing code, mimic the existing style (e.g., use standard `function` declarations for top-level exports if that's what the file currently uses).
 - Keep external dependencies to a minimum unless necessary.
 - When modifying UI, ensure changes are reflected in both the `en` and `fr` dictionaries in `translations.ts`.
+- When creating HTML, keep the style modern and elegant. Avoid the use of emojis, bright colors, and other distractions. The focus should be on the art and on actions the user can take.

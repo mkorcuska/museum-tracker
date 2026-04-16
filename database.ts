@@ -37,7 +37,9 @@ db.exec(`
         username TEXT UNIQUE,
         city TEXT,
         picture_url TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        wants_digest INTEGER DEFAULT 1,
+        lang TEXT DEFAULT 'en' NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS auth_tokens (
@@ -77,13 +79,15 @@ try { db.exec("ALTER TABLE users ADD COLUMN city TEXT;"); } catch (e) { /* Colum
 try { db.exec("ALTER TABLE users ADD COLUMN picture_url TEXT;"); } catch (e) { /* Column already exists */ }
 try { db.exec("ALTER TABLE users ADD COLUMN username TEXT;"); } catch (e) { /* Column already exists */ }
 try { db.exec("CREATE UNIQUE INDEX idx_users_username ON users(username);"); } catch (e) { /* Index already exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN wants_digest INTEGER DEFAULT 1;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN lang TEXT DEFAULT 'en' NOT NULL;"); } catch (e) { /* Column already exists */ }
 
 // --- 2. THE GETTER ---
 export async function getAllEventsFromDB() {
-  // We are commenting out the sync for 5 minutes just to get you running
-  // await syncExhibitionsIfNeeded(); 
+    // We are commenting out the sync for 5 minutes just to get you running
+    // await syncExhibitionsIfNeeded(); 
 
-  return db.prepare(`
+    return db.prepare(`
         SELECT e.*, v.name as venueName 
         FROM exhibitions e
         JOIN venues v ON e.venue_id = v.id

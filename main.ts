@@ -96,11 +96,9 @@ app.use((req, res, next) => {
 // --- Home Page ---
 app.get('/', async (req, res) => {
     const userId = req.session.userId;
-    const exhibitions = await getParisExhibitions(userId);
     let exhibitions = await getParisExhibitions(userId);
     const { filter } = req.query;
 
-    res.render('index', { exhibitions });
     if (filter === 'new') {
         exhibitions = exhibitions.filter(e => e.isNew);
     }
@@ -289,7 +287,6 @@ adminRouter.get('/test-digest', async (req, res) => {
     const closingSoon = exhibitions.filter(e => 
         e.isClosingSoon && (e.venue.isHighValue || e.priority === 'Must See') && 
         e.priority !== 'Ignore' && e.priority !== 'Attended' &&
-        !newFavorites.includes(e) // Prevent duplicates if it's both new AND closing soon
         !newFavorites.some(nf => nf.id === e.id)
     );
 
@@ -297,9 +294,6 @@ adminRouter.get('/test-digest', async (req, res) => {
 
     // 3. Must see (not already listed above)
     const mustSee = exhibitions.filter(e => 
-        e.priority === 'Must See' && 
-        !seenIds.has(e.id) && 
-        e.priority !== 'Ignore' && e.priority !== 'Attended'
         e.priority === 'Must See' && !seenIds.has(e.id) && e.priority !== 'Ignore' && e.priority !== 'Attended'
     );
 
@@ -308,42 +302,43 @@ adminRouter.get('/test-digest', async (req, res) => {
         return res.send("<h3>Digest would be empty. No email would be sent to this user.</h3>");
     }
 
-    // Very basic HTML template for testing the structure
-    let html = `<div style="font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">`;
-    html += `<h2 style="text-align: center;">🎨 Your Weekly Art Digest</h2><hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;" />`;
-    html += `<h2 style="text-align: center;">🎨 ${t('digest_title')}</h2><hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;" />`;
+    // Generate HTML
+    const buttonStyle = "background-color: #f6f8fa; color: #24292e; border: 1px solid rgba(27, 31, 35, 0.15); padding: 8px 16px; font-size: 14px; font-weight: 500; text-decoration: none; border-radius: 6px; display: inline-block; margin: 4px;";
+    let html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid #eaeaea; border-radius: 8px; color: #333; line-height: 1.5;">`;
+    html += `<div style="text-align: center; margin-bottom: 25px;">`;
+    html += `<img src="${req.protocol}://${req.get('host')}/SeeSomeArtLogo.png" alt="SeeSome.art" style="max-height: 40px; margin-bottom: 15px;" />`;
+    html += `<h2 style="font-weight: 400; font-size: 20px; margin: 0; color: #111;">${t('digest_title')}</h2>`;
+    html += `</div><hr style="border: 0; border-top: 1px solid #eaeaea; margin-bottom: 30px;" />`;
     
-    html += `<h3 style="color: #d73a49;">✨ New This Week (Favorite Venues)</h3>`;
-    html += `<h3 style="color: #d73a49;">✨ ${t('digest_new_favorites')}</h3>`;
+    html += `<h3 style="color: #111; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 0;">${t('digest_new_favorites')}</h3>`;
     if (newFavorites.length > 0) {
-        newFavorites.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name}</p>`);
+        newFavorites.forEach(e => html += `<p style="margin: 0 0 10px 0;"><b>${e.title}</b> at ${e.venue.name}</p>`);
     } else {
-        html += `<p style="color: #666;">No new exhibitions from your favorite venues this week. <a href="/" style="color: #0366d6;">Click here to see all new exhibitions.</a></p>`;
-        html += `<p style="color: #666;">${t('digest_no_new_favorites')} <a href="/?filter=new" style="color: #0366d6;">${t('digest_see_all_new')}</a></p>`;
+        html += `<p style="color: #666;">${t('digest_no_new_favorites')}</p>`;
     }
 
-    html += `<h3 style="color: #d73a49; margin-top: 30px;">⏳ Closing Soon</h3>`;
-    html += `<h3 style="color: #d73a49; margin-top: 30px;">⏳ ${t('digest_closing_soon')}</h3>`;
+    html += `<h3 style="color: #111; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 30px;">${t('digest_closing_soon')}</h3>`;
     if (closingSoon.length > 0) {
-        closingSoon.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name} <span style="color: #d73a49; font-size: 0.9em;">(Closes ${e.endDate.toLocaleDateString()})</span></p>`);
-        closingSoon.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name} <span style="color: #d73a49; font-size: 0.9em;">(Closes ${e.endDate.toLocaleDateString(user.lang)})</span></p>`);
+        closingSoon.forEach(e => html += `<p style="margin: 0 0 10px 0;"><b>${e.title}</b> at ${e.venue.name} <span style="color: #666; font-size: 0.9em;">(Closes ${e.endDate.toLocaleDateString(user.lang)})</span></p>`);
     } else {
-        html += `<p style="color: #666;">Nothing on your radar is closing immediately.</p>`;
         html += `<p style="color: #666;">${t('digest_nothing_closing')}</p>`;
     }
 
-    html += `<h3 style="color: #d73a49; margin-top: 30px;">🔥 Your Must See List</h3>`;
-    html += `<h3 style="color: #d73a49; margin-top: 30px;">🔥 ${t('digest_must_see')}</h3>`;
+    html += `<h3 style="color: #111; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; margin-top: 30px;">${t('digest_must_see')}</h3>`;
     if (mustSee.length > 0) {
-        mustSee.forEach(e => html += `<p><b>${e.title}</b> at ${e.venue.name}</p>`);
-        html += `<p style="font-size: 0.9em; font-style: italic; color: #555;">Don't forget to schedule your visit to your Must See exhibitions!</p>`;
+        mustSee.forEach(e => html += `<p style="margin: 0 0 10px 0;"><b>${e.title}</b> at ${e.venue.name}</p>`);
         html += `<p style="font-size: 0.9em; font-style: italic; color: #555;">${t('digest_must_see_reminder')}</p>`;
     } else {
-        html += `<p style="color: #666;">You're all caught up on your Must See list!</p>`;
         html += `<p style="color: #666;">${t('digest_all_caught_up')}</p>`;
     }
 
-    html += `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">You are receiving this because you opted in to weekly digests. <a href="#" style="color: #999; text-decoration: underline;">Unsubscribe</a></div></div>`;
+    // Add the CTA buttons
+    html += `<div style="text-align: center; margin: 30px 0 10px 0; padding-top: 20px; border-top: 1px solid #eaeaea;">`;
+    html += `<a href="/profile" style="${buttonStyle}">${t('digest_go_to_must_see')}</a>`;
+    html += `<a href="/?filter=new" style="${buttonStyle}">${t('digest_see_all_new')}</a>`;
+    html += `<a href="/?filter=closing" style="${buttonStyle}">${t('digest_go_to_closing_soon')}</a>`;
+    html += `</div>`;
+
     const unsubscribeLink = `${req.protocol}://${req.get('host')}/profile/edit`;
     html += `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">${t('digest_receiving_because')} <a href="${unsubscribeLink}" style="color: #999; text-decoration: underline;">${t('digest_unsubscribe')}</a></div></div>`;
     
@@ -360,6 +355,10 @@ app.get('/set-lang/:lang', (req, res) => {
     const lang = req.params.lang;
     if (lang === 'en' || lang === 'fr') {
         req.session.lang = lang;
+        // If user is logged in, update their preference in the DB as well
+        if (req.session.userId) {
+            db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(lang, req.session.userId);
+        }
     }
     res.redirect(req.get('Referrer') || '/');
 });
@@ -441,6 +440,9 @@ app.get('/verify', (req, res) => {
     req.session.userEmail = tokenRecord.email;
     db.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').run(cleanToken);
 
+    // Also save the user's current language preference to the database
+    db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(req.session.lang, tokenRecord.user_id);
+
     res.send(`
         <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
             <h2>${t('login_success')}</h2>
@@ -503,7 +505,6 @@ app.post('/profile/edit', (req, res) => {
     const userId = req.session.userId;
     if (!userId) return res.redirect('/login');
 
-    let { name, username, city, picture_url } = req.body;
     let { name, username, city, picture_url, wants_digest } = req.body;
     
     // Sanitize username (lowercase, letters, numbers, and hyphens only)
@@ -515,8 +516,6 @@ app.post('/profile/edit', (req, res) => {
         if (existing) formattedUsername = formattedUsername + Math.floor(Math.random() * 1000);
     }
 
-    db.prepare('UPDATE users SET name = ?, username = ?, city = ?, picture_url = ? WHERE id = ?')
-      .run(name || null, formattedUsername || null, city || 'Paris', picture_url || null, userId);
     const wantsDigestInt = wants_digest === 'on' ? 1 : 0;
 
     db.prepare('UPDATE users SET name = ?, username = ?, city = ?, picture_url = ?, wants_digest = ? WHERE id = ?')
