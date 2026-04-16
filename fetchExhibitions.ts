@@ -24,7 +24,7 @@ const TAGS_FILE = join(dataDir, 'all_api_tags.json');
 const REJECTED_FILE = join(dataDir, 'rejected_cache.json');
 
 // Easily modifiable array of keywords to filter exhibitions
-export const VALID_KEYWORDS = ["expo", "peinture", "art contemporain", "beaux-arts", "photo", "exposition"];
+export const VALID_KEYWORDS = ["art", "expo", "peinture", "art contemporain", "beaux-arts", "photo", "exposition", "sculpture", "installation", "galerie"];
 
 export async function getParisExhibitions(userId?: number): Promise<Exhibition[]> {
     let rawResults: any[] = [];
@@ -56,8 +56,11 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         let allRejected: any[] = [];
 
         while (hasMore) {
-            // Fetch broadly without strict 'refine' to catch poorly tagged exhibitions
-            const response = await fetch(`${PARIS_API_URL}?limit=${limit}&offset=${offset}`);
+            // Fetch broadly without strict 'refine' to catch poorly tagged exhibitions,
+            // but filter out past events to avoid hitting the API's 10,000 record pagination limit.
+            const today = new Date().toISOString().split('T')[0];
+            const query = encodeURIComponent(`date_end >= "${today}"`);
+            const response = await fetch(`${PARIS_API_URL}?limit=${limit}&offset=${offset}&where=${query}`);
             
             if (!response.ok) {
                 console.error(`API Error: ${response.status}`);
@@ -98,6 +101,32 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         // Save the harvested tags to a file for easy review
         fs.writeFileSync(TAGS_FILE, JSON.stringify(Array.from(allUniqueTags).sort(), null, 2));
         fs.writeFileSync(REJECTED_FILE, JSON.stringify(allRejected, null, 2));
+    }
+
+    // Fetch manually added exhibitions from the database to supplement the API data
+    const manualExhibitions = db.prepare(`
+        SELECT 
+            e.id, e.title, e.start_date, e.end_date, e.url, e.cover_url, e.is_free,
+            v.name as address_name
+        FROM exhibitions e
+        JOIN venues v ON e.venue_id = v.id
+        WHERE e.id LIKE 'manual-%'
+    `).all() as any[];
+
+    // Merge manual exhibitions with API results, avoiding duplicates
+    const existingIds = new Set(rawResults.map(r => r.id));
+    for (const manual of manualExhibitions) {
+        if (!existingIds.has(manual.id)) {
+            // The manual record needs to look like an API record for the Exhibition class constructor
+            const apiLikeRecord = {
+                ...manual,
+                date_start: manual.start_date,
+                date_end: manual.end_date,
+                price_type: manual.is_free ? 'gratuit' : 'payant',
+                updated_at: new Date().toISOString() // Mark as new for sorting purposes
+            };
+            rawResults.push(apiLikeRecord);
+        }
     }
 
     const venuesMap = new Map<string, Venue>();

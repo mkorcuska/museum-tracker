@@ -99,6 +99,26 @@ h1 {
     z-index: 2;
 }
 
+.edit-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: all 0.2s ease;
+    z-index: 3;
+    border: 1px solid #e1e4e8;
+}
+
 .recommended { background-color: #f2994a; }
 .must-see { background-color: #d73a49; }
 .nice-to-see { background-color: #0366d6; }

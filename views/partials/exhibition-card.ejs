@@ -5,6 +5,9 @@
             <img class="card-img" src="<%= exhibition.coverUrl || 'https://via.placeholder.com/300x180?text=No+Image' %>" alt="<%= exhibition.title %>">
         </a>
         <% if (userId) { %>
+        <% if (exhibition.id.startsWith('manual-')) { %>
+            <a href="/admin/edit/<%= exhibition.id %>" class="edit-badge" title="Edit Manual Entry">✏️</a>
+        <% } %>
             <button class="priority-badge badge-btn <%= (exhibition.priority || 'unprioritized').replace(/\s+/g, '-').toLowerCase() %>" data-current="<%= exhibition.priority || 'Unprioritized' %>" onclick="cyclePriority(event, '<%= exhibition.id %>', this)">
                 <%= t('priority_' + (exhibition.priority || 'Unprioritized')) %>
             </button>

@@ -7,7 +7,12 @@
     <div style="text-align: center; position: relative;">
         <h1>Data Curation Dashboard</h1>
         <p style="color: #586069;">Analyze what the API provides vs. what the app rejects.</p>
-        <form action="/admin/refresh" method="POST" style="position: absolute; top: 10px; right: 20px;"><button type="submit" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🔄 Force Data Refresh</button></form>
+        <p style="font-size: 14px; color: #0366d6;"><strong>Last API Refresh:</strong> <%= typeof lastRefresh !== 'undefined' ? lastRefresh : 'Unknown' %></p>
+        <div style="position: absolute; top: 10px; right: 20px; display: flex; gap: 10px; align-items: center;">
+            <a href="/admin/raw-data" target="_blank" style="padding: 8px 16px; background-color: #0366d6; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block; box-sizing: border-box;">📄 View Raw JSON</a>
+            <a href="/admin/add" style="padding: 8px 16px; background-color: #6f42c1; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block; box-sizing: border-box;">➕ Add Exhibition</a>
+            <form action="/admin/refresh" method="POST" style="margin: 0;"><button type="submit" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; box-sizing: border-box;">🔄 Force Data Refresh</button></form>
+        </div>
     </div>
 
     <% 

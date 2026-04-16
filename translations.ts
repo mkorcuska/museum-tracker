@@ -65,7 +65,20 @@ export const translations: Record<'en' | 'fr', Record<string, string>> = {
         'email_welcome': 'Welcome back!',
         'email_click_link': 'Click the link below to log in:',
         'email_log_in_now': 'Log In Now'
-    },
+    },    'add_exhibition_title': 'Manually Add Exhibition',
+    'add_exhibition_desc': 'Use this form to add an exhibition that is missing from the API data source, like those at Fondation Louis Vuitton.',
+    'edit_exhibition_title': 'Edit Manual Exhibition',
+    'edit_exhibition_desc': 'Update the details for this manually added exhibition.',
+    'exhibition_title_label': 'Exhibition Title',
+    'venue_name_label': 'Venue Name',
+    'start_date_label': 'Start Date',
+    'end_date_label': 'End Date',
+    'exhibition_url_label': 'Exhibition URL',
+    'cover_url_label': 'Cover Image URL',
+    'is_free_label': 'This exhibition is free',
+    'add_exhibition_btn': 'Add Exhibition',
+    'update_exhibition_btn': 'Update Exhibition',
+
     fr: {
         'logged_in_as': 'Connecté en tant que :',
         'logout': 'Déconnexion',
@@ -132,5 +145,18 @@ export const translations: Record<'en' | 'fr', Record<string, string>> = {
         'email_welcome': 'Bon retour !',
         'email_click_link': 'Cliquez sur le lien ci-dessous pour vous connecter :',
         'email_log_in_now': 'Se connecter maintenant'
-    }
+    },    'add_exhibition_title': 'Ajouter une exposition manuellement',
+    'add_exhibition_desc': 'Utilisez ce formulaire pour ajouter une exposition manquante de la source de données API, comme celles de la Fondation Louis Vuitton.',
+    'edit_exhibition_title': 'Modifier l\'exposition manuelle',
+    'edit_exhibition_desc': 'Mettez à jour les détails de cette exposition ajoutée manuellement.',
+    'exhibition_title_label': 'Titre de l\'exposition',
+    'venue_name_label': 'Nom du lieu',
+    'start_date_label': 'Date de début',
+    'end_date_label': 'Date de fin',
+    'exhibition_url_label': 'URL de l\'exposition',
+    'cover_url_label': 'URL de l\'image de couverture',
+    'is_free_label': 'Cette exposition est gratuite',
+    'add_exhibition_btn': 'Ajouter l\'exposition',
+    'update_exhibition_btn': 'Mettre à jour l\'exposition',
+
 };

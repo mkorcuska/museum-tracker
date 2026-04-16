@@ -11,7 +11,7 @@ import { join } from 'path';
 // 2. LOCAL IMPORTS
 import db from './database';
 import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions.ts';
-import { generateMagicToken } from './auth';
+import { generateMagicToken, Venue } from './types.ts';
 import { translations } from './translations.ts';
 
 // 3. TYPESCRIPT DECLARATIONS
@@ -108,11 +108,135 @@ app.get('/admin', (req, res) => {
     
     const tagsPath = join(dataDir, 'all_api_tags.json');
     const rejectedPath = join(dataDir, 'rejected_cache.json');
+    const cachePath = join(dataDir, 'exhibitions_cache.json');
     
     const tags = fs.existsSync(tagsPath) ? JSON.parse(fs.readFileSync(tagsPath, 'utf-8')) : [];
     const rejected = fs.existsSync(rejectedPath) ? JSON.parse(fs.readFileSync(rejectedPath, 'utf-8')) : [];
     
-    res.render('admin', { tags, rejected, validKeywords: VALID_KEYWORDS });
+    let lastRefresh = 'Never';
+    if (fs.existsSync(cachePath)) {
+        const stats = fs.statSync(cachePath);
+        lastRefresh = stats.mtime.toLocaleString();
+    }
+    
+    res.render('admin', { tags, rejected, validKeywords: VALID_KEYWORDS, lastRefresh });
+});
+
+app.get('/admin/raw-data', (req, res) => {
+    const cachePath = join(dataDir, 'exhibitions_cache.json');
+    if (fs.existsSync(cachePath)) {
+        res.header("Content-Type", "application/json");
+        res.send(fs.readFileSync(cachePath, 'utf-8'));
+    } else {
+        res.status(404).send('Cache file not found. Please force a refresh.');
+    }
+});
+
+app.get('/admin/add', (req, res) => {
+    // A real app would have an admin check here
+    res.render('add-exhibition', { error: null });
+});
+
+app.post('/admin/add', (req, res) => {
+    const { title, venueName, startDate, endDate, url, coverUrl, isFree } = req.body;
+
+    if (!title || !venueName || !startDate || !endDate) {
+        return res.status(400).render('add-exhibition', { error: 'Title, Venue, Start Date, and End Date are required.' });
+    }
+
+    try {
+        // 1. Handle Venue - this will create it if it doesn't exist.
+        // We pass an empty array for highValueVenues as it's not available here.
+        // The user can favorite the venue in the UI later.
+        const venue = new Venue(venueName, []);
+        venue.save();
+
+        // 2. Create Exhibition
+        const exhibitionId = `manual-${crypto.randomUUID()}`;
+        const isFreeInt = isFree === 'on' ? 1 : 0;
+
+        db.prepare(`
+            INSERT INTO exhibitions (id, title, venue_id, start_date, end_date, url, cover_url, is_free)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(exhibitionId, title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt);
+
+        console.log(`Manually added exhibition: ${title} (ID: ${exhibitionId})`);
+
+        // 3. Invalidate the cache so the new entry appears on next load
+        const cachePath = join(dataDir, 'exhibitions_cache.json');
+        if (fs.existsSync(cachePath)) {
+            fs.unlinkSync(cachePath);
+        }
+
+        res.redirect('/');
+    } catch (err) {
+        console.error("Error adding manual exhibition:", err);
+        res.status(500).render('add-exhibition', { error: 'An error occurred while saving the exhibition.' });
+    }
+});
+
+app.get('/admin/edit/:id', (req, res) => {
+    // A real app would have an admin check here
+    const exhibitionId = req.params.id;
+
+    // Security check: only allow editing of manual entries
+    if (!exhibitionId.startsWith('manual-')) {
+        return res.status(403).send('Editing is only allowed for manually added exhibitions.');
+    }
+
+    const exhibitionData = db.prepare(`
+        SELECT 
+            e.id, e.title, e.start_date, e.end_date, e.url, e.cover_url, e.is_free,
+            v.name as venueName
+        FROM exhibitions e
+        JOIN venues v ON e.venue_id = v.id
+        WHERE e.id = ?
+    `).get(exhibitionId) as any;
+
+    if (!exhibitionData) {
+        return res.status(404).send('Exhibition not found.');
+    }
+
+    // The EJS template expects Date objects, so we convert the strings
+    const exhibition = {
+        ...exhibitionData,
+        startDate: new Date(exhibitionData.start_date),
+        endDate: new Date(exhibitionData.end_date),
+    };
+
+    res.render('edit-exhibition', { exhibition, error: null });
+});
+
+app.post('/admin/edit/:id', (req, res) => {
+    // A real app would have an admin check here
+    const exhibitionId = req.params.id;
+    const { title, venueName, startDate, endDate, url, coverUrl, isFree } = req.body;
+
+    if (!exhibitionId.startsWith('manual-')) {
+        return res.status(403).send('Editing is only allowed for manually added exhibitions.');
+    }
+
+    if (!title || !venueName || !startDate || !endDate) {
+        // This is a simplified error handling. A more advanced version would re-render the form with user's entered values.
+        return res.status(400).redirect(`/admin/edit/${exhibitionId}?error=true`);
+    }
+
+    try {
+        const venue = new Venue(venueName, []);
+        venue.save();
+        const isFreeInt = isFree === 'on' ? 1 : 0;
+
+        db.prepare(`
+            UPDATE exhibitions
+            SET title = ?, venue_id = ?, start_date = ?, end_date = ?, url = ?, cover_url = ?, is_free = ?
+            WHERE id = ?
+        `).run(title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt, exhibitionId);
+
+        res.redirect('/');
+    } catch (err) {
+        console.error("Error updating manual exhibition:", err);
+        res.status(500).send('An error occurred while updating the exhibition.');
+    }
 });
 
 app.post('/admin/refresh', async (req, res) => {
