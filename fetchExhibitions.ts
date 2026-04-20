@@ -1,4 +1,4 @@
-import { Exhibition, Venue } from './types.ts';
+import { Exhibition, Venue, NormalizedVenue, NormalizedExhibition } from './types.ts';
 import * as fs from 'fs';
 import db from './database'; // Notice: No curly braces!
 import { fileURLToPath } from 'url';
@@ -107,7 +107,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     const manualExhibitions = db.prepare(`
         SELECT 
             e.id, e.title, e.start_date, e.end_date, e.url, e.cover_url, e.is_free,
-            v.name as address_name
+            e.city, v.name as address_name, v.address, v.latitude, v.longitude
         FROM exhibitions e
         JOIN venues v ON e.venue_id = v.id
         WHERE e.id LIKE 'manual-%'
@@ -148,8 +148,17 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     const mapAndSave = db.transaction(() => {
         return rawResults.map(record => {
             const venueName = record.address_name || record.lieu || "Unknown Venue";
+            
+            const venueData: NormalizedVenue = {
+                name: venueName,
+                city: record.city || record.address_city || 'Paris',
+                address: record.address_street || record.address,
+                latitude: record.lat_lon?.lat || record.latitude,
+                longitude: record.lat_lon?.lon || record.longitude
+            };
+
             if (!venuesMap.has(venueName)) {
-                const venue = new Venue(venueName, highValueVenues);
+                const venue = new Venue(venueData, highValueVenues);
                 venuesMap.set(venueName, venue);
                 venue.save(); // Save the venue to the database
             }
@@ -160,12 +169,28 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
             if (venuePrefMap.has(userVenue.id)) {
                 userVenue.isHighValue = venuePrefMap.get(userVenue.id)!;
             }
+            
+            // Normalize exhibition data
+            let bestUrl = record.url || record.access_link || record.contact_url || "";
+            if (bestUrl && !bestUrl.startsWith('http')) bestUrl = 'https://' + bestUrl;
+            
+            const expoData: NormalizedExhibition = {
+                id: record.id?.toString(),
+                title: record.title || "Untitled",
+                startDate: new Date(record.date_start || record.start_date),
+                endDate: new Date(record.date_end || record.end_date),
+                url: bestUrl,
+                coverUrl: record.cover_url || record.coverUrl,
+                isFree: record.price_type === 'gratuit' || record.is_free === 1,
+                updatedAt: record.updated_at ? new Date(record.updated_at) : undefined,
+                city: record.city || 'Paris'
+            };
 
             // 3. Look up if the user tagged this specific exhibition
             const userTag = prefMap.get(record.id?.toString());
             
             // Pass the tag to the constructor
-            const exhibition = new Exhibition(record, userVenue, userTag);
+            const exhibition = new Exhibition(expoData, userVenue, userTag);
             exhibition.save(); // Save the exhibition to the database
             return exhibition;
         });
@@ -184,25 +209,30 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
             FROM exhibitions e
             JOIN user_preferences up ON e.id = up.exhibition_id
             JOIN venues v ON e.venue_id = v.id
-            WHERE up.user_id = ? AND up.priority IN ('Attended', 'Must See')
+            WHERE up.user_id = ? AND up.priority IN ('Attended', 'Must See') AND e.city = 'Paris'
         `).all(userId) as any[];
 
         for (const row of pastExhibitions) {
             if (!processedIds.has(row.id)) {
-                const venue = new Venue(row.v_name, []);
+                const venueData: NormalizedVenue = {
+                    name: row.v_name,
+                    city: row.city || 'Paris'
+                };
+                const venue = new Venue(venueData, []);
                 venue.id = row.venue_id; // restore original deterministic ID
                 venue.isHighValue = row.v_high_value === 1;
 
-                const rawFake = {
+                const expoData: NormalizedExhibition = {
                     id: row.id,
                     title: row.title,
-                    date_start: row.start_date,
-                    date_end: row.end_date,
+                    startDate: new Date(row.start_date),
+                    endDate: new Date(row.end_date),
                     url: row.url, 
-                    cover_url: row.cover_url,
-                    price_type: row.is_free ? 'gratuit' : 'payant'
+                    coverUrl: row.cover_url,
+                    isFree: row.is_free === 1,
+                    city: row.city || 'Paris'
                 };
-                const exhibition = new Exhibition(rawFake, venue, row.user_priority);
+                const exhibition = new Exhibition(expoData, venue, row.user_priority);
                 exhibitions.push(exhibition);
                 processedIds.add(row.id);
             }

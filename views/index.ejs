@@ -9,8 +9,29 @@
         <%- include('partials/nav') %>
 
 
-            <h1>
-                <%= t('title') %>
+            <h1 style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span><%= t('title_in_city') %></span>
+                <div class="city-switcher-h1" style="display: inline-block; border-bottom: 2px dotted currentColor;">
+                    <select onchange="window.location.href=this.value" style="
+                        -webkit-appearance: none; 
+                        -moz-appearance: none;
+                        appearance: none;
+                        background-color: transparent;
+                        border: none;
+                        padding: 0 5px;
+                        margin: 0;
+                        font-family: inherit;
+                        font-size: inherit;
+                        font-weight: inherit;
+                        letter-spacing: inherit;
+                        text-transform: inherit;
+                        color: inherit;
+                        cursor: pointer;
+                    ">
+                        <option value="/set-city/paris" <%= locals.city === 'paris' ? 'selected' : '' %>><%= t('city_paris') %></option>
+                        <option value="/set-city/berlin" <%= locals.city === 'berlin' ? 'selected' : '' %>><%= t('city_berlin') %></option>
+                    </select>
+                </div>
             </h1>
 
             <%- include('partials/filters') %>
@@ -81,8 +102,12 @@
                 <footer
                     style="text-align: center; margin-top: 50px; padding: 20px; color: #6a737d; font-size: 12px; border-top: 1px solid #e1e4e8;">
                     <%= t('footer_generated') %>
-                        <%= new Date().toLocaleString(lang==='fr' ? 'fr-FR' : 'en-US' ) %> | <%= t('footer_source') %>:
-                                Paris Open Data 
+                        <%= new Date().toLocaleString(lang==='fr' ? 'fr-FR' : 'en-US' ) %> | 
+                        <% if (locals.city === 'berlin') { %>
+                            <%= t('footer_source_berlin') %>
+                        <% } else { %>
+                            <%= t('footer_source_paris') %>
+                        <% } %>
                 </footer>
     </body>
 

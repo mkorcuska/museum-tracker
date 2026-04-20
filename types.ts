@@ -1,19 +1,38 @@
 
 import db from './database.ts';
 import * as fs from 'fs'; // if you still need fs for other things
+import crypto from 'crypto';
 
 /** The threshold in days below which an exhibition is automatically ignored (unless at a high-value venue) */
 export const SHORT_DURATION_IN_DAYS = 10;
 
+export interface NormalizedVenue {
+  name: string;
+  city: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export class Venue {
   id: string;
   name: string;
+  city: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isHighValue: boolean;
 
-  constructor(name: string, highValueList: string[]) {
-    this.name = name || "Unknown Venue";
-    // Generate a consistent ID from the name
-    this.id = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+  constructor(data: NormalizedVenue, highValueList: string[]) {
+    this.name = data.name || "Unknown Venue";
+    this.city = data.city || 'Paris';
+    this.address = data.address || null;
+    this.latitude = data.latitude || null;
+    this.longitude = data.longitude || null;
+    
+    // Generate a consistent ID from the name. Keep backwards compatibility for existing Paris venues.
+    const cleanName = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    this.id = this.city.toLowerCase() === 'paris' ? cleanName : `${this.city.toLowerCase()}-${cleanName}`;
 
     // Logic that runs automatically on creation
     this.isHighValue = highValueList.some(v =>
@@ -23,12 +42,52 @@ export class Venue {
 
   save() {
     const stmt = db.prepare(`
-          INSERT OR REPLACE INTO venues (id, name, is_high_value)
-          VALUES (?, ?, ?)
+          INSERT INTO venues (id, name, city, address, latitude, longitude, is_high_value)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            city = excluded.city,
+            address = excluded.address,
+            latitude = excluded.latitude,
+            longitude = excluded.longitude,
+            is_high_value = excluded.is_high_value
         `);
-    // SQLite doesn't have Booleans, so we store 1 or 0
-    stmt.run(this.id, this.name, this.isHighValue ? 1 : 0);
+    stmt.run(this.id, this.name, this.city, this.address, this.latitude, this.longitude, this.isHighValue ? 1 : 0);
   }
+}
+
+export function generateMagicToken(email: string): string {
+  // Find or create the user
+  let user = db.prepare('SELECT id FROM users WHERE email = ?').get(email) as { id: number } | undefined;
+  
+  if (!user) {
+      const result = db.prepare('INSERT INTO users (email) VALUES (?)').run(email);
+      user = { id: result.lastInsertRowid as number };
+  }
+  
+  // Generate a secure random token
+  const token = crypto.randomBytes(32).toString('hex');
+  
+  // Set expiration (1 hour from now)
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 1);
+  
+  // Save the token to the database
+  db.prepare('INSERT INTO auth_tokens (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, user.id, expiresAt.toISOString());
+  
+  return token;
+}
+
+export interface NormalizedExhibition {
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  url: string;
+  coverUrl?: string;
+  isFree: boolean;
+  updatedAt?: Date;
+  city: string;
 }
 
 export class Exhibition {
@@ -46,30 +105,28 @@ export class Exhibition {
   isNew: boolean;
   isClosingSoon: boolean;
   isActive: boolean;
+  city: string;
 
-  constructor(raw: any, venue: Venue, userTag?: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore' | 'Unprioritized' | string) {
-    this.id = raw.id?.toString();
-    this.title = raw.title || "Untitled";
+  constructor(data: NormalizedExhibition, venue: Venue, userTag?: 'Must See' | 'Recommended' | 'Nice to See' | 'Attended' | 'Ignore' | 'Unprioritized' | string) {
+    this.id = data.id;
+    this.title = data.title;
     this.venue = venue;
     this.venueId = venue.id;
     this.venueName = venue.name;
-    this.startDate = new Date(raw.date_start);
-    this.endDate = new Date(raw.date_end);
+    this.startDate = data.startDate;
+    this.endDate = data.endDate;
+    this.url = data.url;
+    this.coverUrl = data.coverUrl;
+    this.isFree = data.isFree;
+    this.city = data.city;
     
-    let bestUrl = raw.access_link || raw.contact_url || raw.url || "";
-    if (bestUrl && !bestUrl.startsWith('http')) bestUrl = 'https://' + bestUrl;
-    this.url = bestUrl;
-    
-    this.coverUrl = raw.cover_url;
-    this.isFree = raw.price_type === 'gratuit';
-
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
     this.isActive = this.endDate >= todayStart;
 
     // Check if added/updated in the API in the last 7 days
-    const updatedDate = raw.updated_at ? new Date(raw.updated_at) : new Date(0);
+    const updatedDate = data.updatedAt || new Date(0);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     this.isNew = !userTag && (updatedDate > sevenDaysAgo);
@@ -83,11 +140,11 @@ export class Exhibition {
     if (userTag) {
       this.priority = userTag as any;
     } else {
-      this.priority = this.calculatePriority(raw, venue);
+      this.priority = this.calculatePriority(venue);
     }
   }
 
-  private calculatePriority(raw: any, venue: Venue): 'Must See' | 'Recommended' | 'Nice to See' | 'Ignore' | 'Attended' | 'Unprioritized' {
+  private calculatePriority(venue: Venue): 'Must See' | 'Recommended' | 'Nice to See' | 'Ignore' | 'Attended' | 'Unprioritized' {
     const title = this.title.toLowerCase();
 
     // Ignore rules (workshops/stages)
@@ -106,9 +163,18 @@ export class Exhibition {
   }
   save() {
     const stmt = db.prepare(`
-          INSERT OR REPLACE INTO exhibitions (
-            id, title, venue_id, start_date, end_date, priority, url, cover_url, is_free
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO exhibitions (
+            id, title, venue_id, start_date, end_date, priority, url, cover_url, is_free, city
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            title = excluded.title,
+            venue_id = excluded.venue_id,
+            start_date = excluded.start_date,
+            end_date = excluded.end_date,
+            url = excluded.url,
+            cover_url = excluded.cover_url,
+            is_free = excluded.is_free,
+            city = excluded.city
         `);
 
     stmt.run(
@@ -120,7 +186,8 @@ export class Exhibition {
       this.priority,
       this.url,
       this.coverUrl,
-      this.isFree ? 1 : 0
+      this.isFree ? 1 : 0,
+      this.city
     );
   }
 }

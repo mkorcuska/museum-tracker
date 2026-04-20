@@ -94,6 +94,7 @@ export async function sendWeeklyDigests() {
 import 'dotenv/config';
 import db from './database.ts';
 import { getParisExhibitions } from './fetchExhibitions.ts';
+import { getBerlinExhibitions } from './fetchBerlin.ts';
 import { Resend } from 'resend';
 import { translations } from './translations.ts';
 
@@ -103,16 +104,20 @@ interface User {
     id: number;
     email: string;
     lang: 'en' | 'fr';
+    city: 'paris' | 'berlin';
 }
 
 function getUsersForDigest(): User[] {
     // Fetches all users who have opted-in to the weekly digest.
-    return db.prepare('SELECT id, email, lang FROM users WHERE wants_digest = 1').all() as User[];
+    return db.prepare('SELECT id, email, lang, city FROM users WHERE wants_digest = 1').all() as User[];
 }
 
 async function generateDigestHTMLForUser(user: User): Promise<string | null> {
     const t = (key: string) => translations[user.lang][key] || key;
-    const exhibitions = await getParisExhibitions(user.id);
+    
+    const exhibitions = (user.city || 'paris').toLowerCase() === 'berlin'
+        ? await getBerlinExhibitions(user.id)
+        : await getParisExhibitions(user.id);
 
     // Filter logic (same as /admin/test-digest)
     const newFavorites = exhibitions.filter(e => 

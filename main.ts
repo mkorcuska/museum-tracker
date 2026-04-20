@@ -11,6 +11,7 @@ import { join } from 'path';
 // 2. LOCAL IMPORTS
 import db from './database';
 import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions.ts';
+import { getBerlinExhibitions } from './fetchBerlin.ts';
 import { generateMagicToken, Venue } from './types.ts';
 import { translations } from './translations.ts';
 
@@ -20,6 +21,7 @@ declare module 'express-session' {
         userId: number;
         userEmail: string;
         lang: 'en' | 'fr';
+        city: 'paris' | 'berlin';
     }
 }
 
@@ -60,8 +62,14 @@ app.use((req, res, next) => {
         const detected = req.acceptsLanguages('en', 'fr');
         req.session.lang = (detected === 'fr') ? 'fr' : 'en';
     }
+    if (!req.session.city) {
+        req.session.city = 'paris'; // Default to Paris
+    }
+
     const lang = req.session.lang;
+    const city = req.session.city;
     res.locals.lang = lang;
+    res.locals.city = city;
     res.locals.isAdmin = false; // Default to false
     res.locals.t = (key: string) => translations[lang][key] || key;
 
@@ -96,7 +104,14 @@ app.use((req, res, next) => {
 // --- Home Page ---
 app.get('/', async (req, res) => {
     const userId = req.session.userId;
-    let exhibitions = await getParisExhibitions(userId);
+    const city = req.session.city || 'paris';
+
+    let exhibitions;
+    if (city === 'berlin') {
+        exhibitions = await getBerlinExhibitions(userId);
+    } else {
+        exhibitions = await getParisExhibitions(userId);
+    }
     const { filter } = req.query;
 
     if (filter === 'new') {
@@ -164,7 +179,7 @@ adminRouter.post('/add', (req, res) => {
         // 1. Handle Venue - this will create it if it doesn't exist.
         // We pass an empty array for highValueVenues as it's not available here.
         // The user can favorite the venue in the UI later.
-        const venue = new Venue(venueName, []);
+        const venue = new Venue({ name: venueName, city: 'Paris' }, []);
         venue.save();
 
         // 2. Create Exhibition
@@ -172,9 +187,9 @@ adminRouter.post('/add', (req, res) => {
         const isFreeInt = isFree === 'on' ? 1 : 0;
 
         db.prepare(`
-            INSERT INTO exhibitions (id, title, venue_id, start_date, end_date, url, cover_url, is_free)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(exhibitionId, title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt);
+            INSERT INTO exhibitions (id, title, venue_id, start_date, end_date, url, cover_url, is_free, city)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(exhibitionId, title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt, 'Paris');
 
         console.log(`Manually added exhibition: ${title} (ID: ${exhibitionId})`);
 
@@ -236,15 +251,15 @@ adminRouter.post('/edit/:id', (req, res) => {
     }
 
     try {
-        const venue = new Venue(venueName, []);
+        const venue = new Venue({ name: venueName, city: 'Paris' }, []);
         venue.save();
         const isFreeInt = isFree === 'on' ? 1 : 0;
 
         db.prepare(`
             UPDATE exhibitions
-            SET title = ?, venue_id = ?, start_date = ?, end_date = ?, url = ?, cover_url = ?, is_free = ?
+            SET title = ?, venue_id = ?, start_date = ?, end_date = ?, url = ?, cover_url = ?, is_free = ?, city = ?
             WHERE id = ?
-        `).run(title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt, exhibitionId);
+        `).run(title, venue.id, startDate, endDate, url || null, coverUrl || null, isFreeInt, 'Paris', exhibitionId);
 
         res.redirect('/');
     } catch (err) {
@@ -254,11 +269,16 @@ adminRouter.post('/edit/:id', (req, res) => {
 });
 
 adminRouter.post('/refresh', async (req, res) => {
-    const cachePath = join(dataDir, 'exhibitions_cache.json');
-    if (fs.existsSync(cachePath)) {
-        fs.unlinkSync(cachePath); // Delete the cache file
+    const parisCachePath = join(dataDir, 'exhibitions_cache.json');
+    if (fs.existsSync(parisCachePath)) {
+        fs.unlinkSync(parisCachePath);
     }
-    await getParisExhibitions();  // Force a fresh fetch
+    const berlinCachePath = join(dataDir, 'berlin_cache.json');
+    if (fs.existsSync(berlinCachePath)) {
+        fs.unlinkSync(berlinCachePath);
+    }
+    // Force a fresh fetch for both cities
+    await Promise.all([getParisExhibitions(), getBerlinExhibitions()]);
     res.redirect('/admin');
 });
 
@@ -266,7 +286,7 @@ adminRouter.get('/test-digest', async (req, res) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).send("Not logged in");
 
-    const user = db.prepare('SELECT lang, wants_digest FROM users WHERE id = ?').get(userId) as { lang: 'en' | 'fr', wants_digest: 0 | 1 };
+    const user = db.prepare('SELECT lang, city, wants_digest FROM users WHERE id = ?').get(userId) as { lang: 'en' | 'fr', city: string, wants_digest: 0 | 1 };
     if (!user) return res.status(404).send("User not found.");
 
     if (user.wants_digest === 0) {
@@ -276,7 +296,9 @@ adminRouter.get('/test-digest', async (req, res) => {
     const t = (key: string) => translations[user.lang][key] || key;
 
     // Grab all exhibitions customized for this specific user
-    const exhibitions = await getParisExhibitions(userId);
+    const exhibitions = (user.city || 'paris').toLowerCase() === 'berlin'
+        ? await getBerlinExhibitions(userId)
+        : await getParisExhibitions(userId);
     
     // 1. New this week from favorite venues
     const newFavorites = exhibitions.filter(e => 
@@ -354,6 +376,18 @@ app.get('/set-lang/:lang', (req, res) => {
         // If user is logged in, update their preference in the DB as well
         if (req.session.userId) {
             db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(lang, req.session.userId);
+        }
+    }
+    res.redirect(req.get('Referrer') || '/');
+});
+
+app.get('/set-city/:city', (req, res) => {
+    const city = req.params.city;
+    if (city === 'paris' || city === 'berlin') {
+        req.session.city = city;
+        // If user is logged in, update their preference in the DB as well
+        if (req.session.userId) {
+            db.prepare('UPDATE users SET city = ? WHERE id = ?').run(city, req.session.userId);
         }
     }
     res.redirect(req.get('Referrer') || '/');
@@ -461,7 +495,12 @@ app.get('/profile', async (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     
     // Fetch all exhibitions to easily grab the user's specific lists
-    const allExhibitions = await getParisExhibitions(userId);
+    const [parisExhibitions, berlinExhibitions] = await Promise.all([
+        getParisExhibitions(userId),
+        getBerlinExhibitions(userId)
+    ]);
+    const allExhibitions = [...parisExhibitions, ...berlinExhibitions];
+
     const attended = allExhibitions.filter(e => e.priority === 'Attended');
     const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
 
@@ -481,7 +520,12 @@ app.get('/u/:username', async (req, res) => {
     
     if (!profileUser) return res.status(404).send('Profile not found');
 
-    const allExhibitions = await getParisExhibitions(profileUser.id);
+    const [parisExhibitions, berlinExhibitions] = await Promise.all([
+        getParisExhibitions(profileUser.id),
+        getBerlinExhibitions(profileUser.id)
+    ]);
+    const allExhibitions = [...parisExhibitions, ...berlinExhibitions];
+
     const attended = allExhibitions.filter(e => e.priority === 'Attended');
     const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
 
@@ -584,9 +628,10 @@ app.listen(PORT, '0.0.0.0', () => {
 
     console.log("Checking for initial data sync in background...");
     // Delay the initial sync slightly so Render's port scanner can connect first
-    setTimeout(() => {
-        getParisExhibitions()
-            .then(data => console.log(`Initial sync complete. Found ${data.length} exhibitions.`))
-            .catch(err => console.error("Initial sync failed:", err));
+    setTimeout(async () => {
+        // Sync both cities on startup
+        const [parisData, berlinData] = await Promise.all([getParisExhibitions(), getBerlinExhibitions()]);
+        console.log(`Initial sync complete. Found ${parisData.length} Paris exhibitions.`);
+        console.log(`Initial sync complete. Found ${berlinData.length} Berlin exhibitions.`);
     }, 1000);
 });

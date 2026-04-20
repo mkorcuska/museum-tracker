@@ -82,6 +82,17 @@ try { db.exec("CREATE UNIQUE INDEX idx_users_username ON users(username);"); } c
 try { db.exec("ALTER TABLE users ADD COLUMN wants_digest INTEGER DEFAULT 1;"); } catch (e) { /* Column already exists */ }
 try { db.exec("ALTER TABLE users ADD COLUMN lang TEXT DEFAULT 'en' NOT NULL;"); } catch (e) { /* Column already exists */ }
 
+// Add new columns for Multi-city and Map support
+try { db.exec("ALTER TABLE venues ADD COLUMN city TEXT DEFAULT 'Paris';"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE venues ADD COLUMN address TEXT;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE venues ADD COLUMN latitude REAL;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE venues ADD COLUMN longitude REAL;"); } catch (e) { /* Column already exists */ }
+try { db.exec("ALTER TABLE exhibitions ADD COLUMN city TEXT DEFAULT 'Paris';"); } catch (e) { /* Column already exists */ }
+
+// Set default cities for existing records if they are null
+db.exec("UPDATE venues SET city = 'Paris' WHERE city IS NULL;");
+db.exec("UPDATE exhibitions SET city = 'Paris' WHERE city IS NULL;");
+
 // --- 2. THE GETTER ---
 export async function getAllEventsFromDB() {
     // We are commenting out the sync for 5 minutes just to get you running
