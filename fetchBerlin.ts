@@ -99,68 +99,119 @@ async function fetchAndNormalizeBerlinData(): Promise<{ exhibition: NormalizedEx
     }
     console.log(`Found ${allEvents.length} raw events from Berlin.`);
 
+    // Group events by Attraction ID to find the true Start and End dates
+    const groupedEvents = new Map<string, any>();
+    for (const event of allEvents) {
+        const attractionId = event.attractions?.[0]?.referenceId;
+        if (!attractionId) continue;
+        
+        const eventStart = new Date(event.schedule?.startDate || new Date());
+        const eventEnd = new Date(event.schedule?.endDate || event.schedule?.startDate || new Date());
+        
+        if (!groupedEvents.has(attractionId)) {
+            groupedEvents.set(attractionId, { ...event, _minStart: eventStart, _maxEnd: eventEnd });
+        } else {
+            const existing = groupedEvents.get(attractionId)!;
+            if (eventStart < existing._minStart) existing._minStart = eventStart;
+            if (eventEnd > existing._maxEnd) existing._maxEnd = eventEnd;
+        }
+    }
+    const uniqueEvents = Array.from(groupedEvents.values());
+    console.log(`🗜️ Compressed ${allEvents.length} daily events into ${uniqueEvents.length} unique events.`);
+
+    // Filter events to only those matching our keywords BEFORE fetching heavy details
+    const artEvents = uniqueEvents.filter(event => {
+        const titleDe = event.attractions?.[0]?.referenceLabel?.de || "Untitled";
+        const titleLower = titleDe.toLowerCase();
+        return BERLIN_KEYWORDS.some(kw => titleLower.includes(kw));
+    });
+    console.log(`🎨 Filtered down to ${artEvents.length} art-related events.`);
+
     const locationIds = new Set<string>();
-    allEvents.forEach(event => {
+    const attractionIds = new Set<string>();
+    artEvents.forEach(event => {
         event.locations?.forEach((loc: any) => {
             if (loc.referenceId) locationIds.add(loc.referenceId);
         });
+        attractionIds.add(event.attractions[0].referenceId);
     });
 
     if (locationIds.size === 0) return [];
 
-    console.log(`Fetching ${locationIds.size} locations from Berlin in batches...`);
+    console.log(`Fetching ${locationIds.size} locations from Berlin sequentially to prevent 502 errors...`);
     const allPlaces: any[] = [];
     const locationIdArray = Array.from(locationIds);
-    const batchSize = 50; // Fetch 50 at a time to keep URL short
 
-    for (let i = 0; i < locationIdArray.length; i += batchSize) {
-        const batch = locationIdArray.slice(i, i + batchSize);
-        const placesParams = new URLSearchParams({
-            'ids': batch.join(',')
-        });
-        const placesUrl = `${BERLIN_API_BASE_URL}/locations?${placesParams.toString()}`;
-        console.log(`Fetching batch ${Math.floor(i / batchSize) + 1} of locations...`);
-
-        try {
-            let placesResponse: Response | null = null;
-            let placesRetries = 3;
-            while (placesRetries > 0) {
-                try {
-                    placesResponse = await fetch(placesUrl, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'User-Agent': 'MuseumTracker/1.0 (Node.js)'
-                        }
-                    });
-                    if (!placesResponse.ok) {
-                        throw new Error(`Kulturdaten API Error fetching places: ${placesResponse.status}`);
-                    }
-                    break; // Success
-                } catch (e: any) {
-                    console.log(`Places batch fetch failed, retrying... (${placesRetries - 1} attempts left). Error: ${e.message}`);
-                    placesRetries--;
-                    if (placesRetries === 0) throw e;
-                    await new Promise(resolve => setTimeout(resolve, 5000));
+    for (let i = 0; i < locationIdArray.length; i++) {
+        if (i > 0 && i % 25 === 0) console.log(`Fetched ${i} of ${locationIdArray.length} locations...`);
+        
+        const id = locationIdArray[i];
+        const placesUrl = `${BERLIN_API_BASE_URL}/locations/${id}`;
+        let placesRetries = 3;
+        while (placesRetries > 0) {
+            try {
+                const response = await fetch(placesUrl, {
+                    headers: { 'Accept': 'application/json', 'User-Agent': 'MuseumTracker/1.0 (Node.js)' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    allPlaces.push(data.data || data);
+                    break;
                 }
+                if (response.status === 404) break; // Location not found, safely skip
+                throw new Error(`Status ${response.status}`);
+            } catch (e: any) {
+                placesRetries--;
+                if (placesRetries === 0) break;
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
-
-            if (placesResponse) {
-                const placesData = await placesResponse.json();
-                const locationsList = placesData.data?.locations || placesData.data || [];
-                allPlaces.push(...locationsList);
-            }
-        } catch (e) {
-            console.error("Failed to fetch a batch of places from Kulturdaten API", e);
         }
+        // 100ms pause to let the API breathe
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     const placesMap = new Map<string, any>();
     allPlaces.forEach((place: any) => placesMap.set(place.identifier || place.id, place));
 
-    const normalizedResults: { exhibition: NormalizedExhibition, venue: NormalizedVenue }[] = [];
-    for (const event of allEvents) {
+    console.log(`Fetching ${attractionIds.size} attractions from Berlin sequentially...`);
+    const allAttractions: any[] = [];
+    const attractionIdArray = Array.from(attractionIds);
 
-        const titleDe = event.attractions?.[0]?.referenceLabel?.de || "Untitled";
+    for (let i = 0; i < attractionIdArray.length; i++) {
+        if (i > 0 && i % 25 === 0) console.log(`Fetched ${i} of ${attractionIdArray.length} attractions...`);
+        
+        const id = attractionIdArray[i];
+        const attrUrl = `${BERLIN_API_BASE_URL}/attractions/${id}`;
+        let attrRetries = 3;
+        while (attrRetries > 0) {
+            try {
+                const response = await fetch(attrUrl, {
+                    headers: { 'Accept': 'application/json', 'User-Agent': 'MuseumTracker/1.0 (Node.js)' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    allAttractions.push(data.data || data);
+                    break;
+                }
+                if (response.status === 404) break;
+                throw new Error(`Status ${response.status}`);
+            } catch (e: any) {
+                attrRetries--;
+                if (attrRetries === 0) break;
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    const attractionsMap = new Map<string, any>();
+    allAttractions.forEach((attr: any) => attractionsMap.set(attr.identifier || attr.id, attr));
+
+    const normalizedResults: { exhibition: NormalizedExhibition, venue: NormalizedVenue }[] = [];
+    for (const event of artEvents) {
+        const attractionId = event.attractions[0].referenceId;
+        const attraction = attractionsMap.get(attractionId) || {};
+        const titleDe = attraction.title?.de || event.attractions?.[0]?.referenceLabel?.de || "Untitled";
         
         const titleLower = titleDe.toLowerCase();
         const isArtExhibition = BERLIN_KEYWORDS.some(kw => titleLower.includes(kw));
@@ -187,11 +238,11 @@ async function fetchAndNormalizeBerlinData(): Promise<{ exhibition: NormalizedEx
 
 
         const expoData: NormalizedExhibition = {
-            id: `berlin-${event.identifier}`,
+            id: `berlin-${attractionId}`,
             title: titleDe,
-            startDate: new Date(event.schedule?.startDate || new Date()),
-            endDate: new Date(event.schedule?.endDate || event.schedule?.startDate || new Date()),
-            url: '', // V2 events omit root URLs
+            startDate: event._minStart,
+            endDate: event._maxEnd,
+            url: attraction.website || '', 
             coverUrl: '', // V2 events omit root images
             isFree: event.admission?.ticketType === "ticketType.freeOfCharge",
             updatedAt: event.metadata?.updated ? new Date(event.metadata.updated) : new Date(),

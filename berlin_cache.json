@@ -1,1 +1,802 @@
-[]
+[
+  {
+    "exhibition": {
+      "id": "berlin-A_C4YBNR5BPZ5G",
+      "title": "Ausstellung „Partitur - Wenn Tanz und Malerei sich begegnen“ ",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-15T05:05:44.945Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Mittelpunktbibliothek Schöneberg \"Theodor-Heuss-Bücherei\"",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_2WAW77PKRKZB",
+      "title": "WHATEVER SHAPE YOUR HEART IS IN Gruppenausstellung",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-03T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-02-15T05:05:10.119Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Zitadelle Spandau",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_KAZLZJYC9S57",
+      "title": "Ausstellung von Silja Korn: „Gefühlsbilder – Meine Welt ist nicht dunkel, sie ist kunterbunt“",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-22T05:05:42.786Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Mittelpunktbibliothek Adalbertstraße Wilhelm-Liebknecht-/Namik-Kemal-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_2APASXM3KG4T",
+      "title": "Ausstellung „Wohnen in Berlin“",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-15T05:05:16.013Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Helene-Nathan-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_77MW7W5W9X68",
+      "title": "„Kolonialbiografien aus Lichtenberg“ – neue Werkstattausstellung im Museum Lichtenberg",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-01T05:05:49.162Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Museum Lichtenberg im Stadthaus",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_44FB7MJY75NG",
+      "title": "Wildbienen-Ausstellung der Deutschen Wildtier Stiftung",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:15.141Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Humboldt-Bibliothek Tegel",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_12BRHLYWYS6L",
+      "title": "Ausstellungseröffnung EN-TFAL-TET",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-02-22T05:05:00.014Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kulturhaus Spandau | Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_SMC79PE42D32",
+      "title": "Kiez-Atelier im Studio Bildende Kunst",
+      "startDate": "2026-04-20T00:00:00.000Z",
+      "endDate": "2026-05-04T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-04-05T05:05:37.401Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Studio Bildende Kunst",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_66S5BHJH94GP",
+      "title": "Ausstellung - Iryna Vorona. Im Angesicht des Krieges ",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:07.312Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_99J7Y6S48FSK",
+      "title": "Ausstellung \"19. IBB-Preis für Photographie\" Jana Pressler | Hauptpreis & Moritz Haase | Anerkennungspreis ",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-01-11T05:04:32.443Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_53TY11MX1M47",
+      "title": " Eine Zukunft aus Silber und Beton - Partizipative Ausstellung ",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:08.482Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_AAQXZGHCRZJP",
+      "title": "Ausstellung \"Ewigkeit\" Birgit Borggrebe, Katrin Günther, Katharina Reich und Ulrike Martha Zimmermann",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-01-11T05:04:33.315Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_Q86GP4F3QHA5",
+      "title": "„What’s going on?“ - Gruppenausstellung im Mies van der Rohe Haus",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:05:13.424Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Mies van der Rohe Haus",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_113JM4X5W4R5",
+      "title": "Sonderausstellung Orte ans Licht bringen. Tempelhof, Mariendorf, Marienfelde",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2025-11-27T09:29:50.691Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Tempelhof Museum",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_1S2622GALN8N",
+      "title": "KBB vor Ort: „Partei und Staat“  - Führung im DDR Museum und Umgebung ",
+      "startDate": "2026-04-21T00:00:00.000Z",
+      "endDate": "2026-04-21T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:19.578Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "DDR-Museum",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_E2HNY7NLL39L",
+      "title": "Kuratieren, Umhängen, Partizipieren - machen Sie mit!: Eine Zukunft aus Silber und Beton - Partizipative Ausstellung ",
+      "startDate": "2026-04-22T00:00:00.000Z",
+      "endDate": "2026-04-22T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:09.620Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_MR7CFFY6MBRQ",
+      "title": "Rundgang durch die Ausstellung über das Frauenmusikzentrum Lärm und Lust e.V mit Filmvorführung.",
+      "startDate": "2026-04-22T00:00:00.000Z",
+      "endDate": "2026-04-22T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": false,
+      "updatedAt": "2026-03-08T05:06:22.771Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "BEGiNE - Treffpunkt & Kultur für Frauen e.V.",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_FGDGQWDRPWXJ",
+      "title": "Ausstellung und Rundgang Ausstellung \"19. IBB-Preis für Photographie\" ",
+      "startDate": "2026-04-22T00:00:00.000Z",
+      "endDate": "2026-04-22T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-02-01T05:04:48.807Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_9R2ZDXJDF92M",
+      "title": "Artist Talk: Kunst trifft Gespräch",
+      "startDate": "2026-04-23T00:00:00.000Z",
+      "endDate": "2026-04-23T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:05:07.152Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kurt-Tucholsky-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_SWK8223BC96T",
+      "title": "Ausstellungseröffnung „367 Container - Perspektiven einer Nachbarschaft“ am 24. April 2026",
+      "startDate": "2026-04-24T00:00:00.000Z",
+      "endDate": "2026-04-24T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-01T05:05:50.275Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kiezklub Allende-Viertel",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_ZGLGHM3MESB3",
+      "title": "Talk & Performance zur Ausstellung „Das Haus der Höschen“ ",
+      "startDate": "2026-04-26T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:18.743Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Hansabibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_XG9SCPCD3AAM",
+      "title": "Kreativworkshop Kinderkunstmagistrale",
+      "startDate": "2026-04-26T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:05:24.452Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Schiller-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_KEGCRRM8Z8WZ",
+      "title": "Kreativworkshops der kinderKUNSTmagistrale ",
+      "startDate": "2026-04-26T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-04-05T05:05:20.278Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Schiller-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_QQLNKYMCQ1PG",
+      "title": "Finissage der Ausstellung \" 19. IBB-Preis für Photographie\" ",
+      "startDate": "2026-04-26T00:00:00.000Z",
+      "endDate": "2026-04-26T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-01-11T05:04:34.325Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_CCW8777T5FLM",
+      "title": "Dialogveranstaltungen zur Wanderausstellung \"Dein Kiez im Rampenlicht\"",
+      "startDate": "2026-04-27T00:00:00.000Z",
+      "endDate": "2026-04-27T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-15T05:05:15.764Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Bodo-Uhse-Bibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_MSL5YSAXCKYD",
+      "title": "Erzählcafé im Rahmen der Ausstellung - Iryna Vorona. Im Angesicht des Krieges ",
+      "startDate": "2026-04-28T00:00:00.000Z",
+      "endDate": "2026-04-28T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-08T05:06:08.311Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kommunale Galerie",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_6FDGDQ7B4XKR",
+      "title": "Bastel-Buch: Kunst aus alten Büchern",
+      "startDate": "2026-04-28T00:00:00.000Z",
+      "endDate": "2026-04-28T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2025-11-02T05:03:08.480Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Mark-Twain-Bibliothek / Bezirkszentralbibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_73XT63153Z9H",
+      "title": "Kieztreff Kunst & Kultur",
+      "startDate": "2026-04-29T00:00:00.000Z",
+      "endDate": "2026-04-29T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:05:05.459Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Stadtteilzentrum Kaulsdorf",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_44997NP77QYJ",
+      "title": "Ausstellung-Wilde Schönheit Fotografien von Kai Biermann",
+      "startDate": "2026-04-30T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:03:50.048Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kulturhaus Karlshorst , Foyer 1. Etage",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_E5ZSS3ARP7AP",
+      "title": "Eröffnung: »Constantin Hartenstein – Prototyp« – Die neue Ausstellung der Galerie Parterre im Kleinen Wasserspeicher",
+      "startDate": "2026-04-30T00:00:00.000Z",
+      "endDate": "2026-04-30T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-04-12T05:04:03.616Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kleiner Wasserspeicher",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_R65A5PGFBE64",
+      "title": "Ausstellung „Alte Berufe“- Fotografien von Alexander Deubert",
+      "startDate": "2026-05-01T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-22T05:05:45.941Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Stadtteilzentrum Kaulsdorf",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_GAX26TQTXJE2",
+      "title": "»Constantin Hartenstein – Prototyp« – Eine Ausstellung der Galerie Parterre im Kleinen Wasserspeicher",
+      "startDate": "2026-05-01T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-04-12T05:04:02.946Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Kleiner Wasserspeicher",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_KHJCWTMAK598",
+      "title": "Internationaler Museumstag / Zitadellensonntag / Tag der offnen Ateliers",
+      "startDate": "2026-05-03T00:00:00.000Z",
+      "endDate": "2026-05-03T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:05:23.127Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Zitadelle Spandau",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_NGDMNTBK3X6L",
+      "title": "MuseumsSonntag",
+      "startDate": "2026-05-03T00:00:00.000Z",
+      "endDate": "2026-05-03T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2025-08-03T05:02:04.471Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Zitadelle Spandau",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_SFXQ1DYXH6F7",
+      "title": "Stadtführung - Die Kunst, zu(m) Überleben",
+      "startDate": "2026-05-03T00:00:00.000Z",
+      "endDate": "2026-05-03T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": false,
+      "updatedAt": "2026-02-01T05:04:38.839Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Olivaer Platz",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_GRLL682H9KRZ",
+      "title": "ZAK - ZENTRUM FÜR AKTUELLE KUNST",
+      "startDate": "2026-05-04T00:00:00.000Z",
+      "endDate": "2026-05-06T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-02-22T05:04:57.316Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "ZAK - Zentrum für Aktuelle Kunst - Haus 6",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_DZYFJ2TMSZ67",
+      "title": "\"Die zauberhafte Welt der Blumen\" – Florale Kunst von Bärbel Steinigen",
+      "startDate": "2026-05-04T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-15T05:05:27.636Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Mittelpunktbibliothek Ehm Welk",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_7CBMH75BKBE9",
+      "title": "Museums on the Move: Ausstellungen als Mittel der Kulturdiplomatie (1930-1940)",
+      "startDate": "2026-05-04T00:00:00.000Z",
+      "endDate": "2026-05-04T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-04-19T05:04:24.710Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Hansabibliothek",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_PLSSP98ETTSB",
+      "title": "Kunstkurs für Kinder",
+      "startDate": "2026-05-05T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-29T05:05:23.270Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Amerika-Gedenkbibliothek der ZLB",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  },
+  {
+    "exhibition": {
+      "id": "berlin-A_9GF17REH5M85",
+      "title": "Ausstellung „Alte Berufe“- Fotografien von Alexander Deubert",
+      "startDate": "2026-05-05T00:00:00.000Z",
+      "endDate": "2026-05-05T00:00:00.000Z",
+      "url": "",
+      "coverUrl": "",
+      "isFree": true,
+      "updatedAt": "2026-03-22T05:05:46.113Z",
+      "city": "Berlin"
+    },
+    "venue": {
+      "name": "Stadtteilzentrum Kaulsdorf",
+      "city": "Berlin",
+      "address": "",
+      "latitude": 52.52,
+      "longitude": 13.405
+    }
+  }
+]

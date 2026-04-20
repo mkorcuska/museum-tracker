@@ -113,8 +113,8 @@ export class Exhibition {
     this.venue = venue;
     this.venueId = venue.id;
     this.venueName = venue.name;
-    this.startDate = data.startDate;
-    this.endDate = data.endDate;
+    this.startDate = new Date(data.startDate);
+    this.endDate = new Date(data.endDate);
     this.url = data.url;
     this.coverUrl = data.coverUrl;
     this.isFree = data.isFree;
@@ -126,7 +126,7 @@ export class Exhibition {
     this.isActive = this.endDate >= todayStart;
 
     // Check if added/updated in the API in the last 7 days
-    const updatedDate = data.updatedAt || new Date(0);
+    const updatedDate = data.updatedAt ? new Date(data.updatedAt) : new Date(0);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     this.isNew = !userTag && (updatedDate > sevenDaysAgo);
