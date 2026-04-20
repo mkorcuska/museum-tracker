@@ -6,7 +6,7 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BERLIN_API_BASE_URL = 'https://api-v2.kulturdaten.berlin/api';
-const EXHIBITION_CATEGORY_ID = '1'; // "Ausstellung" in the Kulturdaten API
+const BERLIN_KEYWORDS = ["ausstellung", "kunst", "galerie", "fotografie", "malerei", "skulptur", "museum"];
 
 const dataDir = process.env.DATA_DIR || '.';
 const CACHE_FILE = join(dataDir, 'berlin_cache.json');
@@ -36,7 +36,7 @@ async function fetchAndNormalizeBerlinData(): Promise<{ exhibition: NormalizedEx
 
     while (hasMore) {
         const queryParams = new URLSearchParams({
-            'pageSize': '100',
+            'pageSize': '100', // Increased to reduce HTTP requests since the query is simple
             'page': page.toString()
         });
         
@@ -44,10 +44,6 @@ async function fetchAndNormalizeBerlinData(): Promise<{ exhibition: NormalizedEx
         console.log(`Fetching ${url}`);
 
         const searchPayload = {
-            byAttractionTags: {
-                tags: ["attraction.category.Exhibitions"],
-                matchMode: "any"
-            },
             inTheFuture: true
         };
 
@@ -165,6 +161,11 @@ async function fetchAndNormalizeBerlinData(): Promise<{ exhibition: NormalizedEx
     for (const event of allEvents) {
 
         const titleDe = event.attractions?.[0]?.referenceLabel?.de || "Untitled";
+        
+        const titleLower = titleDe.toLowerCase();
+        const isArtExhibition = BERLIN_KEYWORDS.some(kw => titleLower.includes(kw));
+        if (!isArtExhibition) continue;
+        
         const locationId = event.locations?.[0]?.referenceId;
 
         if (!locationId) continue;
