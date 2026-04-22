@@ -26,7 +26,7 @@ export class Venue {
   constructor(data: NormalizedVenue, highValueList: string[]) {
     this.name = data.name || "Unknown Venue";
     this.city = data.city || 'Paris';
-    this.address = data.address || null;
+    this.address = typeof data.address === 'string' ? data.address : null;
     this.latitude = data.latitude || null;
     this.longitude = data.longitude || null;
     
@@ -43,7 +43,7 @@ export class Venue {
   save() {
     const stmt = db.prepare(`
           INSERT INTO venues (id, name, city, address, latitude, longitude, is_high_value)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          VALUES (@id, @name, @city, @address, @latitude, @longitude, @isHighValue)
           ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             city = excluded.city,
@@ -52,7 +52,15 @@ export class Venue {
             longitude = excluded.longitude,
             is_high_value = excluded.is_high_value
         `);
-    stmt.run(this.id, this.name, this.city, this.address, this.latitude, this.longitude, this.isHighValue ? 1 : 0);
+    stmt.run({
+      id: this.id ?? null,
+      name: this.name ?? null,
+      city: this.city ?? null,
+      address: this.address ?? null,
+      latitude: this.latitude ?? null,
+      longitude: this.longitude ?? null,
+      isHighValue: this.isHighValue ? 1 : 0
+    });
   }
 }
 
@@ -165,7 +173,7 @@ export class Exhibition {
     const stmt = db.prepare(`
           INSERT INTO exhibitions (
             id, title, venue_id, start_date, end_date, priority, url, cover_url, is_free, city
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (@id, @title, @venueId, @startDate, @endDate, @priority, @url, @coverUrl, @isFree, @city)
           ON CONFLICT(id) DO UPDATE SET
             title = excluded.title,
             venue_id = excluded.venue_id,
@@ -177,17 +185,17 @@ export class Exhibition {
             city = excluded.city
         `);
 
-    stmt.run(
-      this.id,
-      this.title,
-      this.venueId,
-      this.startDate.toISOString(),
-      this.endDate.toISOString(),
-      this.priority,
-      this.url,
-      this.coverUrl,
-      this.isFree ? 1 : 0,
-      this.city
-    );
+    stmt.run({
+      id: this.id ?? null,
+      title: this.title ?? null,
+      venueId: this.venueId ?? null,
+      startDate: this.startDate.toISOString(),
+      endDate: this.endDate.toISOString(),
+      priority: this.priority ?? null,
+      url: this.url ?? null,
+      coverUrl: this.coverUrl ?? null,
+      isFree: this.isFree ? 1 : 0,
+      city: this.city ?? null
+    });
   }
 }

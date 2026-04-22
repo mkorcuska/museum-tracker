@@ -28,8 +28,9 @@
                         color: inherit;
                         cursor: pointer;
                     ">
-                        <option value="/set-city/paris" <%= locals.city === 'paris' ? 'selected' : '' %>><%= t('city_paris') %></option>
-                        <option value="/set-city/berlin" <%= locals.city === 'berlin' ? 'selected' : '' %>><%= t('city_berlin') %></option>
+                        <% activeCities.forEach(c => { %>
+                            <option value="/set-city/<%= c %>" <%= locals.city === c ? 'selected' : '' %>><%= t('city_' + c) %></option>
+                        <% }) %>
                     </select>
                 </div>
             </h1>

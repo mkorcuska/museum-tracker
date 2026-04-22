@@ -98,6 +98,8 @@ import { getBerlinExhibitions } from './fetchBerlin.ts';
 import { Resend } from 'resend';
 import { translations } from './translations.ts';
 
+const ACTIVE_CITIES = (process.env.ACTIVE_CITIES || 'paris,berlin').split(',').map(c => c.trim().toLowerCase());
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface User {
@@ -115,9 +117,12 @@ function getUsersForDigest(): User[] {
 async function generateDigestHTMLForUser(user: User): Promise<string | null> {
     const t = (key: string) => translations[user.lang][key] || key;
     
-    const exhibitions = (user.city || 'paris').toLowerCase() === 'berlin'
-        ? await getBerlinExhibitions(user.id)
-        : await getParisExhibitions(user.id);
+    let exhibitions: any[] = [];
+    if ((user.city || 'paris').toLowerCase() === 'berlin' && ACTIVE_CITIES.includes('berlin')) {
+        exhibitions = await getBerlinExhibitions(user.id);
+    } else if (ACTIVE_CITIES.includes('paris')) {
+        exhibitions = await getParisExhibitions(user.id);
+    }
 
     // Filter logic (same as /admin/test-digest)
     const newFavorites = exhibitions.filter(e => 

@@ -11,7 +11,7 @@ import { join } from 'path';
 // 2. LOCAL IMPORTS
 import db from './database';
 import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions.ts';
-import { getBerlinExhibitions } from './fetchBerlin.ts';
+import { getBerlinExhibitions, rebuildBerlinMapping } from './fetchBerlin.ts';
 import { generateMagicToken, Venue } from './types.ts';
 import { translations } from './translations.ts';
 
@@ -30,6 +30,7 @@ const app = express();
 const SQLiteStore = connectSqlite3(session);
 const resend = new Resend(process.env.RESEND_API_KEY);
 const dataDir = process.env.DATA_DIR || '.';
+const ACTIVE_CITIES = (process.env.ACTIVE_CITIES || 'paris,berlin').split(',').map(c => c.trim().toLowerCase());
 
 // 5. APP CONFIGURATION & MIDDLEWARE
 app.set('trust proxy', 1);
@@ -62,14 +63,16 @@ app.use((req, res, next) => {
         const detected = req.acceptsLanguages('en', 'fr');
         req.session.lang = (detected === 'fr') ? 'fr' : 'en';
     }
-    if (!req.session.city) {
-        req.session.city = 'paris'; // Default to Paris
+    // If no city is set, or if the set city is no longer active, default to the first active city.
+    if (!req.session.city || !ACTIVE_CITIES.includes(req.session.city)) {
+        req.session.city = ACTIVE_CITIES[0] || 'paris';
     }
 
     const lang = req.session.lang;
     const city = req.session.city;
     res.locals.lang = lang;
     res.locals.city = city;
+    res.locals.activeCities = ACTIVE_CITIES;
     res.locals.isAdmin = false; // Default to false
     res.locals.t = (key: string) => translations[lang][key] || key;
 
@@ -106,10 +109,10 @@ app.get('/', async (req, res) => {
     const userId = req.session.userId;
     const city = req.session.city || 'paris';
 
-    let exhibitions;
-    if (city === 'berlin') {
+    let exhibitions: any[] = [];
+    if (city === 'berlin' && ACTIVE_CITIES.includes('berlin')) {
         exhibitions = await getBerlinExhibitions(userId);
-    } else {
+    } else if (city === 'paris' && ACTIVE_CITIES.includes('paris')) {
         exhibitions = await getParisExhibitions(userId);
     }
     const { filter } = req.query;
@@ -269,17 +272,32 @@ adminRouter.post('/edit/:id', (req, res) => {
 });
 
 adminRouter.post('/refresh', async (req, res) => {
-    const parisCachePath = join(dataDir, 'exhibitions_cache.json');
-    if (fs.existsSync(parisCachePath)) {
-        fs.unlinkSync(parisCachePath);
+    const syncPromises = [];
+    if (ACTIVE_CITIES.includes('paris')) {
+        const parisCachePath = join(dataDir, 'exhibitions_cache.json');
+        if (fs.existsSync(parisCachePath)) fs.unlinkSync(parisCachePath);
+        syncPromises.push(getParisExhibitions());
     }
-    const berlinCachePath = join(dataDir, 'berlin_cache.json');
-    if (fs.existsSync(berlinCachePath)) {
-        fs.unlinkSync(berlinCachePath);
+    if (ACTIVE_CITIES.includes('berlin')) {
+        const berlinCachePath = join(dataDir, 'berlin_cache.json');
+        if (fs.existsSync(berlinCachePath)) fs.unlinkSync(berlinCachePath);
+        syncPromises.push(getBerlinExhibitions());
     }
-    // Force a fresh fetch for both cities
-    await Promise.all([getParisExhibitions(), getBerlinExhibitions()]);
+    
+    await Promise.all(syncPromises);
     res.redirect('/admin');
+});
+
+adminRouter.post('/rebuild-berlin', async (req, res) => {
+    try {
+        await rebuildBerlinMapping();
+        // Force the app to re-map the newly processed cache into the database logic
+        await getBerlinExhibitions();
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error rebuilding Berlin cache:", err);
+        res.status(500).send('An error occurred while rebuilding the cache.');
+    }
 });
 
 adminRouter.get('/test-digest', async (req, res) => {
@@ -296,9 +314,12 @@ adminRouter.get('/test-digest', async (req, res) => {
     const t = (key: string) => translations[user.lang][key] || key;
 
     // Grab all exhibitions customized for this specific user
-    const exhibitions = (user.city || 'paris').toLowerCase() === 'berlin'
-        ? await getBerlinExhibitions(userId)
-        : await getParisExhibitions(userId);
+    let exhibitions: any[] = [];
+    if ((user.city || 'paris').toLowerCase() === 'berlin' && ACTIVE_CITIES.includes('berlin')) {
+        exhibitions = await getBerlinExhibitions(userId);
+    } else if (ACTIVE_CITIES.includes('paris')) {
+        exhibitions = await getParisExhibitions(userId);
+    }
     
     // 1. New this week from favorite venues
     const newFavorites = exhibitions.filter(e => 
@@ -495,11 +516,11 @@ app.get('/profile', async (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
     
     // Fetch all exhibitions to easily grab the user's specific lists
-    const [parisExhibitions, berlinExhibitions] = await Promise.all([
-        getParisExhibitions(userId),
-        getBerlinExhibitions(userId)
-    ]);
-    const allExhibitions = [...parisExhibitions, ...berlinExhibitions];
+    const fetchPromises = [];
+    if (ACTIVE_CITIES.includes('paris')) fetchPromises.push(getParisExhibitions(userId));
+    if (ACTIVE_CITIES.includes('berlin')) fetchPromises.push(getBerlinExhibitions(userId));
+    
+    const allExhibitions = (await Promise.all(fetchPromises)).flat();
 
     const attended = allExhibitions.filter(e => e.priority === 'Attended');
     const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
@@ -520,11 +541,11 @@ app.get('/u/:username', async (req, res) => {
     
     if (!profileUser) return res.status(404).send('Profile not found');
 
-    const [parisExhibitions, berlinExhibitions] = await Promise.all([
-        getParisExhibitions(profileUser.id),
-        getBerlinExhibitions(profileUser.id)
-    ]);
-    const allExhibitions = [...parisExhibitions, ...berlinExhibitions];
+    const fetchPromises = [];
+    if (ACTIVE_CITIES.includes('paris')) fetchPromises.push(getParisExhibitions(profileUser.id));
+    if (ACTIVE_CITIES.includes('berlin')) fetchPromises.push(getBerlinExhibitions(profileUser.id));
+    
+    const allExhibitions = (await Promise.all(fetchPromises)).flat();
 
     const attended = allExhibitions.filter(e => e.priority === 'Attended');
     const mustSee = allExhibitions.filter(e => e.priority === 'Must See');
@@ -629,9 +650,14 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log("Checking for initial data sync in background...");
     // Delay the initial sync slightly so Render's port scanner can connect first
     setTimeout(async () => {
-        // Sync both cities on startup
-        const [parisData, berlinData] = await Promise.all([getParisExhibitions(), getBerlinExhibitions()]);
-        console.log(`Initial sync complete. Found ${parisData.length} Paris exhibitions.`);
-        console.log(`Initial sync complete. Found ${berlinData.length} Berlin exhibitions.`);
+        try {
+            const syncPromises = [];
+            if (ACTIVE_CITIES.includes('paris')) syncPromises.push(getParisExhibitions().then(d => console.log(`Initial sync complete. Found ${d.length} Paris exhibitions.`)));
+            if (ACTIVE_CITIES.includes('berlin')) syncPromises.push(getBerlinExhibitions().then(d => console.log(`Initial sync complete. Found ${d.length} Berlin exhibitions.`)));
+            
+            await Promise.all(syncPromises);
+        } catch (err) {
+            console.error("⚠️ Background sync failed. Running with cached/DB data if available.", err);
+        }
     }, 1000);
 });
