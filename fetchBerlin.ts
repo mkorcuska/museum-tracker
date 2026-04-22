@@ -403,7 +403,7 @@ export async function getBerlinExhibitions(userId?: number): Promise<Exhibition[
 
     const venuesMap = new Map<string, Venue>();
     const userPrefs = userId ? db.prepare('SELECT exhibition_id, priority FROM user_preferences WHERE user_id = ?').all(userId) : [];
-    const prefMap = new Map(userPrefs.map((p: any) => [p.exhibition_id, p.priority]));
+    const prefMap = new Map<string, string>(userPrefs.map((p: any) => [p.exhibition_id, p.priority]));
     const userVenuePrefs = userId ? db.prepare('SELECT venue_id, is_favorite FROM user_favorite_venues WHERE user_id = ?').all(userId) : [];
     const venuePrefMap = new Map(userVenuePrefs.map((p: any) => [p.venue_id, p.is_favorite === 1]));
 
@@ -431,7 +431,7 @@ export async function getBerlinExhibitions(userId?: number): Promise<Exhibition[
     let exhibitions = mapAndSave();
 
     if (userId) {
-        const processedIds = new Set(exhibitions.map(e => e.id));
+        const processedIds = new Set(exhibitions.map((e: Exhibition) => e.id));
         const pastExhibitions = db.prepare(`
             SELECT e.*, v.name as v_name, v.is_high_value as v_high_value, up.priority as user_priority
             FROM exhibitions e
@@ -452,7 +452,7 @@ export async function getBerlinExhibitions(userId?: number): Promise<Exhibition[
         }
     }
 
-    exhibitions.sort((a, b) => {
+    exhibitions.sort((a: Exhibition, b: Exhibition) => {
         const getRank = (expo: Exhibition) => {
             if (!expo.isActive) return expo.priority === 'Attended' ? 8 : 9;
             if (expo.priority === 'Attended') return 7;
@@ -476,7 +476,7 @@ export async function getBerlinExhibitions(userId?: number): Promise<Exhibition[
 
 export async function rebuildBerlinMapping(): Promise<void> {
     console.log("🛠️ Rebuilding Berlin mapping from raw JSON files...");
-    const normalizedResults = await fetchAndNormalizeBerlinData(true);
+    const normalizedResults = await fetchAndNormalizeBerlinData();
     fs.writeFileSync(CACHE_FILE, JSON.stringify(normalizedResults, null, 2));
     console.log(`✅ Rebuilt berlin_cache.json with ${normalizedResults.length} exhibitions.`);
 }

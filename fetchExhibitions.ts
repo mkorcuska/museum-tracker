@@ -137,7 +137,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
         [];
     
     // Convert to a Map for ultra-fast lookups
-    const prefMap = new Map(userPrefs.map((p: any) => [p.exhibition_id, p.priority]));
+    const prefMap = new Map<string, string>(userPrefs.map((p: any) => [p.exhibition_id, p.priority]));
 
     const userVenuePrefs = userId ?
         db.prepare('SELECT venue_id, is_favorite FROM user_favorite_venues WHERE user_id = ?').all(userId) :
@@ -202,7 +202,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     // If a user marked an exhibition as 'Attended' or 'Must See', we want to keep it in their history
     // even if it has dropped off the live API.
     if (userId) {
-        const processedIds = new Set(exhibitions.map(e => e.id));
+        const processedIds = new Set(exhibitions.map((e: Exhibition) => e.id));
         
         const pastExhibitions = db.prepare(`
             SELECT e.*, v.name as v_name, v.is_high_value as v_high_value, up.priority as user_priority
@@ -240,7 +240,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
     }
 
     // Sort the results
-    exhibitions.sort((a, b) => {
+    exhibitions.sort((a: Exhibition, b: Exhibition) => {
         // 1. Assign a rank based on custom filtering/sorting rules
         const getRank = (expo: Exhibition) => {
             if (!expo.isActive) {
@@ -270,9 +270,9 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
 
     console.log(`✅ Successfully mapped ${exhibitions.length} exhibitions.`);
     
-    const newExhibitionsCount = exhibitions.filter(e => e.isNew).length;
+    const newExhibitionsCount = exhibitions.filter((e: Exhibition) => e.isNew).length;
     console.log(`🎉 Found ${newExhibitionsCount} new exhibitions this week!`);
-    const closingExhibitionsCount = exhibitions.filter(e => e.isClosingSoon).length;
+    const closingExhibitionsCount = exhibitions.filter((e: Exhibition) => e.isClosingSoon).length;
     console.log(`🎉 Found ${closingExhibitionsCount} exhibitions closing soon!`);
 
     return exhibitions;

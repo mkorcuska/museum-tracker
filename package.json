@@ -12,12 +12,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "devDependencies": {},
+  "dependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/connect-sqlite3": "^0.9.6",
-    "@types/express": "^5.0.6"
-  },
-  "dependencies": {
+    "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
     "better-sqlite3": "^12.8.0",
     "connect-sqlite3": "^0.9.16",

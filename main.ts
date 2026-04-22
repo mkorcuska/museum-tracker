@@ -65,7 +65,7 @@ app.use((req, res, next) => {
     }
     // If no city is set, or if the set city is no longer active, default to the first active city.
     if (!req.session.city || !ACTIVE_CITIES.includes(req.session.city)) {
-        req.session.city = ACTIVE_CITIES[0] || 'paris';
+        req.session.city = (ACTIVE_CITIES[0] as 'paris' | 'berlin') || 'paris';
     }
 
     const lang = req.session.lang;
