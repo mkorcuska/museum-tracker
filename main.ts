@@ -46,7 +46,7 @@ app.use(session({
     store: new SQLiteStore({
         db: 'sessions.db',
         dir: dataDir
-    }),
+    }) as any,
     secret: process.env.SESSION_SECRET || 'super-secret-key',
     resave: false,
     saveUninitialized: false,
