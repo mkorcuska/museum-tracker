@@ -1,10 +1,8 @@
-import { Exhibition, Venue, NormalizedVenue, NormalizedExhibition } from './types.ts';
+import { Exhibition, Venue, NormalizedVenue, NormalizedExhibition } from './types';
 import * as fs from 'fs';
 import db from './database';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const BERLIN_API_BASE_URL = 'https://api-v2.kulturdaten.berlin/api';
 
 const dataDir = process.env.DATA_DIR || '.';
@@ -16,7 +14,7 @@ const RAW_ATTRACTIONS_FILE = join(dataDir, 'berlin_raw_attractions.json');
 // Helper to load your venue list from the text file
 function loadHighValueVenues(): string[] {
     try {
-        const data = fs.readFileSync(join(__dirname, 'high-value-venues.txt'), 'utf-8');
+        const data = fs.readFileSync(join(process.cwd(), 'high-value-venues.txt'), 'utf-8');
         return data.split('\n').map(line => line.trim()).filter(l => l.length > 0);
     } catch (err) {
         console.error("Warning: Could not load high-value-venues.txt", err);

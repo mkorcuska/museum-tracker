@@ -1,9 +1,7 @@
 import Database from 'better-sqlite3';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const dataDir = process.env.DATA_DIR || __dirname;
+const dataDir = process.env.DATA_DIR || process.cwd();
 const dbPath = join(dataDir, 'museums.db');
 
 const db = new Database(dbPath);

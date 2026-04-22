@@ -10,10 +10,10 @@ import { join } from 'path';
 
 // 2. LOCAL IMPORTS
 import db from './database';
-import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions.ts';
-import { getBerlinExhibitions, rebuildBerlinMapping } from './fetchBerlin.ts';
-import { generateMagicToken, Venue } from './types.ts';
-import { translations } from './translations.ts';
+import { getParisExhibitions, VALID_KEYWORDS } from './fetchExhibitions';
+import { getBerlinExhibitions, rebuildBerlinMapping } from './fetchBerlin';
+import { generateMagicToken, Venue } from './types';
+import { translations } from './translations';
 
 // 3. TYPESCRIPT DECLARATIONS
 declare module 'express-session' {

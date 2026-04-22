@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    "outDir": "./dist"
   },
   "include": ["**/*.ts"]
 }

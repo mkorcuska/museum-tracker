@@ -1,5 +1,5 @@
 
-import db from './database.ts';
+import db from './database';
 import * as fs from 'fs'; // if you still need fs for other things
 import crypto from 'crypto';
 

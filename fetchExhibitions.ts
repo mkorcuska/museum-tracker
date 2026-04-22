@@ -1,16 +1,14 @@
-import { Exhibition, Venue, NormalizedVenue, NormalizedExhibition } from './types.ts';
+import { Exhibition, Venue, NormalizedVenue, NormalizedExhibition } from './types';
 import * as fs from 'fs';
 import db from './database'; // Notice: No curly braces!
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const PARIS_API_URL = 'https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/que-faire-a-paris-/records';
 
 // Helper to load your venue list from the text file
 function loadHighValueVenues(): string[] {
     try {
-        const data = fs.readFileSync(join(__dirname, 'high-value-venues.txt'), 'utf-8');
+        const data = fs.readFileSync(join(process.cwd(), 'high-value-venues.txt'), 'utf-8');
         return data.split('\n').map(line => line.trim()).filter(l => l.length > 0);
     } catch (err) {
         console.error("Warning: Could not load high-value-venues.txt", err);

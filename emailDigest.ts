@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import db from './database.ts';
-import { getParisExhibitions } from './fetchExhibitions.ts';
-import { getBerlinExhibitions } from './fetchBerlin.ts';
+import db from './database';
+import { getParisExhibitions } from './fetchExhibitions';
+import { getBerlinExhibitions } from './fetchBerlin';
 import { Resend } from 'resend';
-import { translations } from './translations.ts';
+import { translations } from './translations';
 
 const ACTIVE_CITIES = (process.env.ACTIVE_CITIES || 'paris,berlin').split(',').map(c => c.trim().toLowerCase());
 
