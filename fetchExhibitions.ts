@@ -171,7 +171,7 @@ export async function getParisExhibitions(userId?: number): Promise<Exhibition[]
             }
             
             // Normalize exhibition data
-            let bestUrl = record.url || record.access_link || record.contact_url || "";
+            let bestUrl = record.access_link || record.url || record.contact_url || "";
             if (bestUrl && !bestUrl.startsWith('http')) bestUrl = 'https://' + bestUrl;
             
             const expoData: NormalizedExhibition = {
