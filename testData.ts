@@ -1,9 +1,8 @@
 import * as fs from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = join(__dirname, 'exhibitions_cache.json');
+const dataDir = process.env.DATA_DIR || process.cwd();
+const CACHE_FILE = join(dataDir, 'exhibitions_cache.json');
 
 if (!fs.existsSync(CACHE_FILE)) {
     console.error("❌ Cache file not found. Run the server first to fetch data.");
